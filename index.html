@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>MEM · Producción</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg:      #f4f1ec;
+  --surface: #ffffff;
+  --ink:     #1c1a17;
+  --ink2:    #7a7470;
+  --border:  #e2ddd6;
+  --green:   #2a6235;
+  --green-bg:#d4ead9;
+  --orange:  #b85500;
+  --orange-bg:#fde8d3;
+  --red:     #a82222;
+  --red-bg:  #fad6d6;
+  --blue:    #1a5c9e;
+  --blue-bg: #dbeeff;
+  --accent:  #3d6b20;
+  --nav-h:   64px;
+  --safe-b:  env(safe-area-inset-bottom, 0px);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13px;
+  overflow-x: hidden;
+}
+
+/* ───── APP SHELL ───── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* ───── TOPBAR ───── */
+.topbar {
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-logo-mobile svg {
+  height: 32px;
+  width: auto;
+}
+.topbar-brand {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.topbar-sub {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  margin-top: 1px;
+}
+.topbar-date {
+  font-size: 10px;
+  color: rgba(255,255,255,.4);
+  text-align: right;
+}
+
+/* ───── SCROLL AREA ───── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ───── PAGES ───── */
+.page { display: none; padding: 16px 16px 0; }
+.page.active { display: block; }
+
+.page-title {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+/* ───── STATS ROW ───── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stats-row.cols3 { grid-template-columns: repeat(3, 1fr); }
+.stats-row.cols1 { grid-template-columns: 1fr; }
+
+/* stat principal + sub-fila */
+.stat-top-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-half {
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.stat-full {
+  grid-column: 1 / -1;
+}
+.stat-sub-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.stat-sub {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.stat-sub .num {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+.stat-sub .lbl {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-top: 4px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.stat .num {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+.stat .num.sm { font-size: 18px; }
+.stat .lbl {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-top: 4px;
+}
+.stat.green .num { color: var(--green); }
+.stat.orange .num { color: var(--orange); }
+.stat.red .num { color: var(--red); }
+
+/* ───── SEARCH + FILTERS ───── */
+.search-box {
+  position: relative;
+  margin-bottom: 10px;
+}
+.search-box input {
+  width: 100%;
+  padding: 11px 14px 11px 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  -webkit-appearance: none;
+}
+.search-box input:focus { border-color: var(--accent); }
+.search-box::before {
+  content: '⌕';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink2);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+
+/* ── hover en cards ── */
+.pedido-card  { transition: background .15s; cursor: default; }
+.pedido-card:hover  { background: #f0ede8; }
+.pago-card    { transition: background .15s; cursor: default; }
+.pago-card:hover    { background: #f0ede8; }
+.stock-item   { transition: background .15s; cursor: default; }
+.stock-item:hover   { background: #f0ede8; }
+.ot-item      { transition: background .15s; cursor: default; }
+.ot-item:hover      { background: #f0ede8; }
+.caja-row     { transition: background .15s; cursor: default; }
+.caja-row:hover     { background: #f0ede8; }
+.chip {
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* ───── PEDIDO CARD (seguimiento) ───── */
+.pedido-list { display: flex; flex-direction: column; gap: 10px; }
+
+.pedido-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 18px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.pedido-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+}
+.pedido-card.en-prod::before { background: var(--orange); }
+.pedido-card.listo::before   { background: var(--blue); }
+.pedido-card.entregado::before { background: var(--green); }
+
+.pedido-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.pedido-nro { font-size: 11px; color: var(--ink2); margin-bottom: 4px; }
+.pedido-cliente {
+  font-weight: 500;
+  font-size: 17px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.pedido-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 0;
+}
+.pedido-producto {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+.pedido-material { font-size: 12px; color: var(--ink2); }
+
+/* filas de detalle dentro de la card */
+.pedido-detalles {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 10px;
+}
+.pedido-fila {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+}
+.pedido-fila-lbl {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  white-space: nowrap;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+.pedido-fila-val {
+  color: var(--ink);
+  font-size: 12px;
+}
+.pedido-tela-bloque {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pedido-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pedido-entrega {
+  font-size: 12px;
+  color: var(--ink2);
+  font-weight: 500;
+}
+
+.steps {
+  display: flex;
+  gap: 3px;
+}
+.step {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  border: 1.5px solid;
+}
+.step.ok   { background: var(--green);  border-color: var(--green);  color: #fff; }
+.step.pend { background: #fff;          border-color: var(--border);  color: var(--ink2); }
+.step.skip { background: var(--bg);     border-color: var(--border);  color: var(--ink2); opacity: .4; }
+
+.pedido-entrega { font-size: 10px; color: var(--ink2); }
+
+/* ───── BADGE ───── */
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-green  { background: var(--green-bg);  color: var(--green); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); }
+.badge-red    { background: var(--red-bg);    color: var(--red); }
+.badge-gray   { background: #eceae5;          color: var(--ink2); }
+.badge-blue   { background: var(--blue-bg);   color: var(--blue); }
+
+/* ───── LOAD MORE ───── */
+.load-more {
+  margin: 16px 0;
+  width: 100%;
+  padding: 13px;
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.load-more:active { background: var(--surface); }
+
+/* ───── OT PROVEEDOR ───── */
+.prov-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.prov-chips::-webkit-scrollbar { display: none; }
+
+.ot-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.ot-card-header {
+  background: var(--ink);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ot-card-header .ico { font-size: 20px; }
+.ot-card-header .name {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 17px;
+  font-weight: 300;
+}
+.ot-card-header .count {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: .5;
+  letter-spacing: 1px;
+}
+
+.ot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ot-item:last-child { border-bottom: none; }
+.ot-nro {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink2);
+  width: 38px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.ot-info { flex: 1; min-width: 0; }
+.ot-cli { font-weight: 500; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ot-prod { font-size: 11px; color: var(--ink2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ot-fecha { font-size: 10px; color: var(--ink2); flex-shrink: 0; text-align: right; }
+.ot-extra { font-size: 11px; color: var(--ink2); margin-top: 2px; }
+
+/* ───── STOCK ───── */
+.stock-grupo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 2px;
+  margin-top: 24px;
+  margin-bottom: 6px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.stock-grupo-header:first-child { margin-top: 0; }
+.stock-grupo-wrap {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.stock-grupo-nombre {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.stock-grupo-total {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.stock-list { display: flex; flex-direction: column; gap: 0; }
+
+.stock-item {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.stock-item:first-of-type { border-radius: 10px 10px 0 0; }
+.stock-item:last-of-type  { border-radius: 0 0 10px 10px; border-bottom: none; }
+
+.stock-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.stock-item.full::before  { background: var(--green); }
+.stock-item.low::before   { background: var(--orange); }
+.stock-item.zero::before  { background: var(--red); }
+
+.stock-qty {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.stock-item.full  .stock-qty { color: var(--green); }
+.stock-item.low   .stock-qty { color: var(--orange); }
+.stock-item.zero  .stock-qty { color: var(--red); }
+
+.stock-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.stock-prod { font-weight: 500; font-size: 13px; color: var(--ink); flex: 1; }
+.stock-meta { font-size: 11px; color: var(--ink2); display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.stock-obs  { font-size: 11px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; max-width: 200px; }
+
+/* ───── PAGOS ───── */
+.pago-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.pago-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.pago-prov { font-weight: 500; font-size: 14px; color: var(--ink); }
+.pago-banco { font-size: 11px; color: var(--ink2); margin-top: 2px; }
+.pago-dato  { font-size: 11px; color: var(--ink2); margin-top: 1px; font-family: 'Courier New', monospace; }
+.pago-dato-lbl { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink2); opacity: .6; font-family: 'Inter', sans-serif; margin-right: 4px; }
+.pago-monto {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: right;
+  flex-shrink: 0;
+}
+.pago-concepto {
+  font-size: 11px;
+  color: var(--ink2);
+  line-height: 1.5;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.pago-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pago-fecha { font-size: 10px; color: var(--ink2); }
+
+.pagos-total-card {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 12px;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.pagos-total-card .lbl { font-size: 10px; opacity: .5; letter-spacing: 1px; text-transform: uppercase; }
+.pagos-total-card .num { font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px; font-size: 24px; font-weight: 600; }
+
+/* ───── BITÁCORA ───── */
+.bit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.bit-header {
+  background: var(--ink);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bit-name {
+  font-family: 'Inter', sans-serif; font-weight: 300; letter-spacing: -0.5px;
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: -0.3px;
+}
+.bit-collapsible {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .3s ease;
+}
+.bit-collapsible.open {
+  max-height: 9999px;
+}
+.bit-body {
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
+}
+
+/* comentarios */
+.bit-comments-wrap {
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.bit-comment {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--border);
+}
+.bit-comment.bit-comment-jefe {
+  border-left-color: var(--accent);
+  background: #eef5e8;
+}
+.bit-comment-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.bit-comment-autor { font-size: 11px; font-weight: 500; color: var(--ink); }
+.bit-comment-fecha { font-size: 10px; color: var(--ink2); }
+.bit-comment-texto { font-size: 12px; color: var(--ink); line-height: 1.5; }
+
+/* formulario reply */
+.bit-reply-form {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bit-select {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  outline: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7470' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.bit-textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+}
+.bit-textarea:focus, .bit-input:focus { border-color: var(--accent); }
+.bit-send {
+  padding: 10px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+}
+.bit-send:active { background: #333; }
+.bit-send-sm {
+  padding: 8px 24px;
+  background: #888;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+}
+.bit-send-sm:active { background: #666; }
+.bit-send-sm:disabled { opacity: .5; cursor: default; }
+/* Texto más grande en bitácora mobile */
+.bit-comment-texto { font-size: 13px; color: var(--ink); line-height: 1.6; }
+.bit-comment-autor { font-size: 12px; font-weight: 600; }
+.bit-comment-fecha { font-size: 11px; color: var(--ink2); }
+.bit-body          { font-size: 14px; }
+
+/* ───── WOODAR BLOCK ───── */
+.w-card { margin-top: 12px; }
+.w-section-title {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.w-stock-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.w-stock-card {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+  border-left: 3px solid var(--border);
+  min-width: 80px;
+}
+.w-stock-card.full { border-left-color: var(--green); }
+.w-stock-card.low  { border-left-color: var(--orange); }
+.w-stock-card.zero { border-left-color: var(--red); }
+.w-stock-qty {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+.w-stock-card.full .w-stock-qty { color: var(--green); }
+.w-stock-card.low  .w-stock-qty { color: var(--orange); }
+.w-stock-card.zero .w-stock-qty { color: var(--red); }
+.w-stock-tipo { font-size: 11px; color: var(--ink2); margin-top: 4px; }
+
+.w-fecha-grupo { margin-bottom: 14px; }
+.w-fecha-label { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 6px; }
+.w-ot-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.w-ot-row:last-child { border-bottom: none; }
+.w-ot-info { flex: 1; }
+.w-ot-prod { font-size: 13px; font-weight: 500; color: var(--ink); }
+.w-ot-meta { font-size: 11px; color: var(--ink2); margin-top: 2px; }
+.w-ot-precio { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; flex-shrink: 0; }
+
+/* tabla OTOC */
+.w-table-wrap { overflow-x: auto; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border); }
+.w-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.w-table thead tr { background: var(--ink); color: #fff; }
+.w-table th { padding: 9px 12px; text-align: left; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; font-weight: 500; white-space: nowrap; }
+.w-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; color: var(--ink); }
+.w-table tbody tr:last-child td { border-bottom: none; }
+.w-table tbody tr:hover td { background: #f0ede8; }
+.caja-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+.caja-header {
+  background: var(--ink);
+  color: #fff;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.caja-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.caja-concepto { color: var(--ink); }
+.caja-monto    { font-weight: 600; }
+.caja-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--bg);
+}
+.bottom-nav {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-b);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+/* logo solo visible en desktop sidebar */
+.sidebar-logo { display: none; }
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  color: var(--ink2);
+  transition: color .15s;
+  gap: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item.active { color: var(--ink); }
+.nav-item .nav-ico { font-size: 20px; line-height: 1; font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
+.nav-item .nav-lbl { font-size: 9px; letter-spacing: .5px; font-weight: 500; }
+.nav-dot {
+  position: relative;
+}
+.nav-dot::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -4px;
+  width: 7px; height: 7px;
+  background: var(--orange);
+  border-radius: 50%;
+  border: 1.5px solid var(--surface);
+}
+
+/* ───── EMPTY STATE ───── */
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ink2);
+  font-size: 12px;
+}
+
+/* ───── BOTTOM SPACING ───── */
+.page-bottom-pad { height: 16px; }
+
+/* ───── DESKTOP override (≥ 700px) ───── */
+@media (min-width: 700px) {
+  .app { flex-direction: row; }
+
+  .topbar {
+    display: none;
+  }
+
+  .bottom-nav {
+    width: 200px;
+    flex-direction: column;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    padding-bottom: 0;
+    height: 100dvh;
+    position: sticky;
+    top: 0;
+    order: -1;
+    align-items: stretch;
+    justify-content: flex-start;
+    background: var(--ink);
+  }
+
+  .nav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 13px 20px;
+    color: rgba(255,255,255,.5);
+    border-left: 3px solid transparent;
+    border-radius: 0;
+  }
+  .nav-item.active { color: #fff; border-left-color: #8fba52; background: rgba(255,255,255,.06); }
+  .nav-item .nav-ico { font-size: 16px; font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; }
+  .nav-item .nav-lbl { font-size: 12px; letter-spacing: .3px; }
+
+  /* Brand block in sidebar */
+  .bottom-nav::before { display: none; }
+  .sidebar-logo {
+    display: block;
+    padding: 22px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    margin-bottom: 12px;
+  }
+  .sidebar-logo svg {
+    width: 100%;
+    max-width: 160px;
+    height: auto;
+  }
+
+  .scroll-area {
+    flex: 1;
+    height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .page { padding: 32px 36px 0; }
+  .page-title { font-size: 26px; margin-bottom: 20px; }
+
+  .stats-row { grid-template-columns: repeat(4, 1fr); }
+  .stats-row.cols3 { grid-template-columns: repeat(3, 1fr); }
+
+  .prov-chips { flex-wrap: wrap; }
+
+  /* labels más grandes en sidebar desktop */
+  .nav-item .nav-lbl { font-size: 16px; letter-spacing: .3px; }
+
+  /* hover en sidebar desktop */
+  .nav-item:hover:not(.active) {
+    color: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.08);
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR (mobile only) -->
+  <header class="topbar">
+    <div class="topbar-logo-mobile"><svg id="MobCapa_2" data-name="MobCapa2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 271.58 86.46"> <defs> <style> .mob-1 { fill: none; stroke: #ffffff; stroke-miterlimit: 10; stroke-width: 1.42px; } .mob-2 { fill: transparent; } .mob-3 { fill: #ffffff; } </style> </defs> <g id="MobCapa_1-2" data-name="MobCapa1"> <g> <g> <path class="mob-2" d="M261.73,68.8c4.46,0,8.06,3.56,8.06,7.94s-3.6,7.93-8.06,7.93-8.06-3.56-8.06-7.93,3.6-7.94,8.06-7.94Z"/> <path class="mob-2" d="M252.6,10.15v66.15c0,4.63-3.75,8.37-8.37,8.37-2.66,0-5.02-1.24-6.56-3.17t-.01-.02l-8.08-11.03h0s-.01-.02-.01-.02c-1.73-2.18-4.4-3.57-7.39-3.57h-22.05c-3.01,0-5.69,1.41-7.42,3.6h-.01s-8.05,11.02-8.05,11.02t-.01.02c-1.55,1.93-3.91,3.17-6.56,3.17-4.63,0-8.37-3.74-8.37-8.37,0-5.21-4.23-9.44-9.44-9.44h-44.12c-.87,0-1.58-.71-1.58-1.58s.71-1.58,1.58-1.58h44.12c5.21,0,9.44-4.23,9.44-9.45V10.15c0-4.62,3.74-8.37,8.37-8.37h66.15c4.62,0,8.37,3.75,8.37,8.37Z"/> <path class="mob-2" d="M168.63,43.23v11.02c0,4.62-3.74,8.37-8.36,8.37h-44.12c-1.46,0-2.65,1.19-2.65,2.66s1.19,2.66,2.65,2.66h44.12c4.62,0,8.36,3.74,8.36,8.36s-3.74,8.37-8.36,8.37h-66.16c-4.62,0-8.36-3.74-8.36-8.37V10.15c0-4.62,3.74-8.37,8.36-8.37h66.16c4.62,0,8.36,3.75,8.36,8.37v33.08Z"/> <path class="mob-2" d="M84.67,10.15v66.15c0,4.63-3.75,8.37-8.37,8.37-2.65,0-5.02-1.24-6.56-3.17t-.01-.02l-8.07-11.03h-.01s-.01-.02-.01-.02c-1.73-2.18-4.39-3.57-7.39-3.57h-22.05c-3.01,0-5.68,1.41-7.41,3.6h-.02s-8.05,11.02-8.05,11.02t0,.02c-1.54,1.93-3.91,3.17-6.56,3.17-4.62,0-8.37-3.74-8.37-8.37V10.15C1.78,5.53,5.53,1.78,10.15,1.78h66.15c4.62,0,8.37,3.75,8.37,8.37Z"/> <path class="mob-3" d="M270.33,76.74h.54c0,4.98-4.1,9.01-9.14,9.01v-1.08c4.46,0,8.06-3.56,8.06-7.93h.54Z"/> <path class="mob-3" d="M270.87,76.74h-1.08c0-4.38-3.6-7.94-8.06-7.94v-1.08c5.04,0,9.14,4.03,9.14,9.02Z"/> <path class="mob-3" d="M261.73,85.21v.54c-4.02,0-7.44-2.57-8.66-6.14.34-.9.54-1.87.59-2.87h.01c0,4.37,3.6,7.93,8.06,7.93v.54Z"/> <path class="mob-3" d="M253.67,76.3v-3.8c1.54-2.85,4.57-4.78,8.06-4.78v1.08c-4.46,0-8.06,3.56-8.06,7.94h-.01c.01-.15.01-.29.01-.44Z"/> <path class="mob-3" d="M253.67,72.5v3.8h-1.06c.07-1.37.44-2.66,1.06-3.8Z"/> <path class="mob-3" d="M253.67,10.15v62.35c-.62,1.14-.99,2.43-1.06,3.8h-.01V10.15h1.07Z"/> <path class="mob-3" d="M253.67,76.3c0,.15,0,.29-.01.44h-1.06c0-.15,0-.3.01-.44h1.06Z"/> <path class="mob-3" d="M253.67,10.15h-1.07c0-4.62-3.75-8.37-8.37-8.37V.71c5.21,0,9.44,4.22,9.44,9.44Z"/> <path class="mob-3" d="M253.13,76.74h.53c-.05,1-.25,1.97-.59,2.87-.3-.9-.47-1.87-.47-2.87h.53Z"/> <path class="mob-3" d="M252.6,76.74c0,1,.17,1.97.47,2.87-1.34,3.59-4.79,6.14-8.84,6.14v-1.08c4.62,0,8.37-3.74,8.37-8.37h.01c-.01.14-.01.29-.01.44Z"/> <path class="mob-3" d="M244.23,85.21v.54c-3.01,0-5.69-1.41-7.42-3.6l.42-.33.44-.32c1.54,1.93,3.9,3.17,6.56,3.17v.54Z"/> <polygon class="mob-3" points="244.23 1.25 244.23 1.78 178.08 1.78 178.08 1.25 178.08 .71 244.23 .71 244.23 1.25"/> <path class="mob-3" d="M237.66,81.48s.01.01.01.02l-.44.32.43-.34Z"/> <polygon class="mob-3" points="237.66 81.48 237.23 81.82 236.8 82.13 228.73 71.1 229.15 70.76 229.58 70.45 237.66 81.48"/> <polygon class="mob-3" points="237.23 81.82 236.81 82.15 236.8 82.14 236.8 82.13 237.23 81.82"/> <polygon class="mob-3" points="229.58 70.44 229.58 70.45 229.15 70.76 229.57 70.43 229.58 70.44"/> <path class="mob-3" d="M229.57,70.43l-.42.33-.44.32c-1.54-1.92-3.89-3.14-6.53-3.14v-1.08c2.99,0,5.66,1.39,7.39,3.57Z"/> <path class="mob-3" d="M229.15,70.76l-.42.34-.02-.02.44-.32Z"/> <polygon class="mob-3" points="222.18 67.4 222.18 67.94 200.13 67.94 200.13 67.4 200.13 66.86 222.18 66.86 222.18 67.4"/> <path class="mob-3" d="M200.13,67.4v.54c-2.67,0-5.03,1.24-6.56,3.17l-.44-.32-.42-.33c1.73-2.19,4.41-3.6,7.42-3.6v.54Z"/> <polygon class="mob-3" points="193.57 71.11 193.56 71.12 193.13 70.79 193.57 71.11"/> <polygon class="mob-3" points="193.56 71.12 185.51 82.13 185.07 81.82 184.65 81.48 192.7 70.47 193.13 70.79 193.56 71.12"/> <polygon class="mob-3" points="193.13 70.79 192.7 70.47 192.71 70.46 193.13 70.79"/> <polygon class="mob-3" points="185.51 82.13 185.5 82.14 185.49 82.15 185.07 81.82 185.51 82.13"/> <path class="mob-3" d="M185.07,81.82l.42.33c-1.73,2.19-4.41,3.6-7.41,3.6v-1.08c2.65,0,5.01-1.24,6.56-3.17l.43.32Z"/> <path class="mob-3" d="M185.07,81.82l-.43-.32s0-.01.01-.02l.42.34Z"/> <path class="mob-3" d="M178.08,85.21v.54c-4.11,0-7.61-2.62-8.91-6.29.35-.99.54-2.05.54-3.16,0,4.63,3.74,8.37,8.37,8.37v.54Z"/> <path class="mob-3" d="M178.08,1.25v.53c-4.63,0-8.37,3.75-8.37,8.37,0-1.11-.19-2.17-.54-3.16,1.3-3.66,4.8-6.28,8.91-6.28v.54Z"/> <polygon class="mob-3" points="169.71 43.23 169.71 54.25 169.17 54.25 168.63 54.25 168.63 43.23 169.17 43.23 169.71 43.23"/> <polygon class="mob-3" points="169.71 10.15 169.71 43.23 169.17 43.23 168.63 43.23 168.63 10.15 169.17 10.15 169.71 10.15"/> <path class="mob-3" d="M169.71,10.15h-1.08c0-1.11.19-2.17.54-3.16.35.99.54,2.05.54,3.16Z"/> <path class="mob-3" d="M169.17,54.25h.54c0,5.22-4.23,9.45-9.44,9.45v-1.08c4.62,0,8.36-3.75,8.36-8.37h.54Z"/> <path class="mob-3" d="M169.17,76.3h.54c0,1.11-.19,2.17-.54,3.16-.35-.99-.54-2.05-.54-3.16h.54Z"/> <path class="mob-3" d="M169.71,76.3h-1.08c0-4.62-3.74-8.36-8.36-8.36v-1.08c5.21,0,9.44,4.23,9.44,9.44Z"/> <path class="mob-3" d="M169.17,6.99c-.35.99-.54,2.05-.54,3.16,0-4.62-3.74-8.37-8.36-8.37V.71c4.1,0,7.6,2.62,8.9,6.28Z"/> <path class="mob-3" d="M168.63,76.3c0,1.11.19,2.17.54,3.16-1.3,3.67-4.8,6.29-8.9,6.29v-1.08c4.62,0,8.36-3.74,8.36-8.37Z"/> <polygon class="mob-3" points="160.27 85.21 160.27 85.75 94.11 85.75 94.11 85.21 94.11 84.67 160.27 84.67 160.27 85.21"/> <polygon class="mob-3" points="160.27 67.4 160.27 67.94 116.15 67.94 116.15 67.4 116.15 66.86 160.27 66.86 160.27 67.4"/> <polygon class="mob-3" points="160.27 63.16 160.27 63.7 116.15 63.7 116.15 63.16 116.15 62.62 160.27 62.62 160.27 63.16"/> <polygon class="mob-3" points="160.27 1.25 160.27 1.78 94.11 1.78 94.11 1.25 94.11 .71 160.27 .71 160.27 1.25"/> <path class="mob-3" d="M116.15,67.4v.54c-1.46,0-2.65-1.19-2.65-2.66h1.07c0,.87.71,1.58,1.58,1.58v.54Z"/> <path class="mob-3" d="M116.15,63.16v.54c-.87,0-1.58.7-1.58,1.58h-1.07c0-1.47,1.19-2.66,2.65-2.66v.54Z"/> <path class="mob-3" d="M94.11,85.21v.54c-4.1,0-7.6-2.62-8.9-6.29.35-.99.54-2.05.54-3.16,0,4.63,3.74,8.37,8.36,8.37v.54Z"/> <path class="mob-3" d="M94.11,1.25v.53c-4.62,0-8.36,3.75-8.36,8.37,0-1.11-.19-2.17-.54-3.16,1.3-3.66,4.8-6.28,8.9-6.28v.54Z"/> <polygon class="mob-3" points="85.75 10.15 85.75 76.3 85.21 76.3 84.67 76.3 84.67 10.15 85.21 10.15 85.75 10.15"/> <path class="mob-3" d="M85.75,10.15h-1.08c0-1.11.19-2.17.54-3.16.35.99.54,2.05.54,3.16Z"/> <path class="mob-3" d="M85.21,76.3h.54c0,1.11-.19,2.17-.54,3.16-.35-.99-.54-2.05-.54-3.16h.54Z"/> <path class="mob-3" d="M85.21,6.99c-.35.99-.54,2.05-.54,3.16,0-4.62-3.75-8.37-8.37-8.37V.71c4.11,0,7.61,2.62,8.91,6.28Z"/> <path class="mob-3" d="M84.67,76.3c0,1.11.19,2.17.54,3.16-1.3,3.67-4.8,6.29-8.91,6.29v-1.08c4.62,0,8.37-3.74,8.37-8.37Z"/> <path class="mob-3" d="M76.3,85.21v.54c-3.01,0-5.69-1.41-7.41-3.6l.42-.33.43-.32c1.54,1.93,3.91,3.17,6.56,3.17v.54Z"/> <polygon class="mob-3" points="76.3 1.25 76.3 1.78 10.15 1.78 10.15 1.25 10.15 .71 76.3 .71 76.3 1.25"/> <path class="mob-3" d="M69.73,81.48s.01.01.01.02l-.43.32.42-.34Z"/> <polygon class="mob-3" points="69.73 81.48 69.31 81.82 68.87 82.13 60.8 71.1 61.22 70.76 61.66 70.45 69.73 81.48"/> <polygon class="mob-3" points="69.31 81.82 68.89 82.15 68.88 82.14 68.87 82.13 69.31 81.82"/> <polygon class="mob-3" points="61.66 70.45 61.22 70.76 61.64 70.43 61.65 70.44 61.66 70.45"/> <path class="mob-3" d="M61.64,70.43l-.42.33-.43.32c-1.54-1.92-3.9-3.14-6.54-3.14v-1.08c3,0,5.66,1.39,7.39,3.57Z"/> <path class="mob-3" d="M61.22,70.76l-.42.34s-.01-.01-.01-.02l.43-.32Z"/> <polygon class="mob-3" points="54.25 67.4 54.25 67.94 32.2 67.94 32.2 67.4 32.2 66.86 54.25 66.86 54.25 67.4"/> <path class="mob-3" d="M32.2,67.4v.54c-2.66,0-5.02,1.24-6.56,3.17l-.43-.32-.42-.33c1.73-2.19,4.4-3.6,7.41-3.6v.54Z"/> <polygon class="mob-3" points="25.64 71.11 25.63 71.12 25.21 70.79 25.64 71.11"/> <polygon class="mob-3" points="25.63 71.12 17.58 82.13 17.15 81.82 16.72 81.48 24.77 70.47 25.21 70.79 25.63 71.12"/> <polygon class="mob-3" points="25.21 70.79 24.77 70.47 24.78 70.46 24.79 70.46 25.21 70.79"/> <polygon class="mob-3" points="17.58 82.13 17.57 82.14 17.57 82.15 17.15 81.82 17.58 82.13"/> <path class="mob-3" d="M17.15,81.82l.42.33c-1.73,2.19-4.41,3.6-7.42,3.6v-1.08c2.65,0,5.02-1.24,6.56-3.17l.44.32Z"/> <path class="mob-3" d="M17.15,81.82l-.44-.32s0-.01,0-.02l.43.34Z"/> <path class="mob-3" d="M10.15,85.21v.54c-5.22,0-9.44-4.23-9.44-9.45h1.07c0,4.63,3.75,8.37,8.37,8.37v.54Z"/> <path class="mob-3" d="M10.15,1.25v.53C5.53,1.78,1.78,5.53,1.78,10.15H.71C.71,4.93,4.93.71,10.15.71v.54Z"/> <polygon class="mob-3" points="1.78 10.15 1.78 76.3 1.24 76.3 .71 76.3 .71 10.15 1.24 10.15 1.78 10.15"/> </g> <g> <line class="mob-1" x1="160.27" y1="62.62" x2="116.15" y2="62.62"/> <line class="mob-1" x1="116.15" y1="63.7" x2="160.27" y2="63.7"/> <path class="mob-1" d="M114.57,65.28c0-.88.71-1.58,1.58-1.58v-1.08c-1.46,0-2.65,1.19-2.65,2.66"/> <path class="mob-1" d="M116.15,66.86c-.87,0-1.58-.71-1.58-1.58h-1.07c0,1.47,1.19,2.66,2.65,2.66"/> <polyline class="mob-1" points="160.27 66.86 116.15 66.86 116.15 67.4 116.15 67.94 160.27 67.94"/> <path class="mob-1" d="M169.71,76.3c0-5.21-4.23-9.44-9.44-9.44v1.08c4.62,0,8.36,3.74,8.36,8.36"/> <path class="mob-1" d="M168.63,76.3c0,4.63-3.74,8.37-8.36,8.37"/> <path class="mob-1" d="M160.27,85.75c4.1,0,7.6-2.62,8.9-6.29"/> <polyline class="mob-1" points="94.11 85.75 160.27 85.75 160.27 85.21 160.27 84.67 94.11 84.67"/> <path class="mob-1" d="M85.21,79.46c1.3,3.67,4.8,6.29,8.9,6.29v-1.08c-4.62,0-8.36-3.74-8.36-8.37"/> <path class="mob-1" d="M85.75,10.15c0-4.62,3.74-8.37,8.36-8.37"/> <path class="mob-1" d="M94.11.71c-4.1,0-7.6,2.62-8.9,6.28"/> <polyline class="mob-1" points="160.27 .71 94.11 .71 94.11 1.25 94.11 1.78 160.27 1.78"/> <path class="mob-1" d="M169.17,6.99c-1.3-3.66-4.8-6.28-8.9-6.28v1.07c4.62,0,8.36,3.75,8.36,8.37"/> <line class="mob-1" x1="168.63" y1="43.23" x2="168.63" y2="54.25"/> <line class="mob-1" x1="169.71" y1="54.25" x2="169.71" y2="43.23"/> <path class="mob-1" d="M160.27,62.62v1.08c5.21,0,9.44-4.23,9.44-9.45h-1.08c0,4.62-3.74,8.37-8.36,8.37Z"/> <polyline class="mob-1" points="168.63 10.15 168.63 43.23 169.17 43.23 169.71 43.23 169.71 10.15"/> <line class="mob-1" x1="237.66" y1="81.48" x2="229.58" y2="70.45"/> <line class="mob-1" x1="237.23" y1="81.82" x2="237.67" y2="81.5"/> <line class="mob-1" x1="228.73" y1="71.1" x2="236.8" y2="82.13"/> <line class="mob-1" x1="229.15" y1="70.76" x2="228.71" y2="71.08"/> <path class="mob-1" d="M229.57,70.43c-1.73-2.18-4.4-3.57-7.39-3.57"/> <path class="mob-1" d="M222.18,67.94c2.64,0,4.99,1.22,6.53,3.14l.02.02.42-.34"/> <polyline class="mob-1" points="200.13 67.94 222.18 67.94 222.18 67.4 222.18 66.86 200.13 66.86"/> <path class="mob-1" d="M193.57,71.11c1.53-1.93,3.89-3.17,6.56-3.17v-1.08c-3.01,0-5.69,1.41-7.42,3.6"/> <line class="mob-1" x1="193.13" y1="70.79" x2="193.56" y2="71.12"/> <line class="mob-1" x1="184.64" y1="81.5" x2="185.07" y2="81.82"/> <line class="mob-1" x1="192.7" y1="70.47" x2="184.65" y2="81.48"/> <polyline class="mob-1" points="185.51 82.13 193.56 71.12 193.57 71.11 193.13 70.79"/> <path class="mob-1" d="M185.07,81.82l-.42-.34s-.01.01-.01.02c-1.55,1.93-3.91,3.17-6.56,3.17"/> <path class="mob-1" d="M178.08,85.75c3,0,5.68-1.41,7.41-3.6"/> <path class="mob-1" d="M169.71,76.3h-1.08c0,1.11.19,2.17.54,3.16,1.3,3.67,4.8,6.29,8.91,6.29v-1.08c-4.63,0-8.37-3.74-8.37-8.37Z"/> <path class="mob-1" d="M178.08.71c-4.11,0-7.61,2.62-8.91,6.28-.35.99-.54,2.05-.54,3.16h1.08c0-4.62,3.74-8.37,8.37-8.37"/> <polyline class="mob-1" points="244.23 .71 178.08 .71 178.08 1.25 178.08 1.78 244.23 1.78"/> <path class="mob-1" d="M253.67,10.15c0-5.22-4.23-9.44-9.44-9.44v1.07c4.62,0,8.37,3.75,8.37,8.37"/> <polyline class="mob-1" points="253.67 72.5 253.67 10.15 253.13 10.15 252.6 10.15 252.6 76.3"/> <path class="mob-1" d="M252.61,76.3h-.01c0,4.63-3.75,8.37-8.37,8.37"/> <path class="mob-1" d="M244.23,85.75c4.05,0,7.5-2.55,8.84-6.14"/> <path class="mob-1" d="M236.81,82.15c1.73,2.19,4.41,3.6,7.42,3.6v-1.08c-2.66,0-5.02-1.24-6.56-3.17t-.01-.02l-.43.34"/> <polygon class="mob-1" points="229.15 70.76 229.58 70.45 229.58 70.44 229.57 70.43 229.15 70.76"/> <polygon class="mob-1" points="193.13 70.79 192.71 70.46 192.7 70.47 193.13 70.79"/> <polygon class="mob-1" points="185.07 81.82 185.49 82.15 185.5 82.14 185.51 82.13 185.07 81.82"/> <polygon class="mob-1" points="237.23 81.82 236.8 82.13 236.8 82.14 236.81 82.15 237.23 81.82"/> <line class="mob-1" x1="69.73" y1="81.48" x2="61.66" y2="70.45"/> <line class="mob-1" x1="69.31" y1="81.82" x2="69.74" y2="81.5"/> <line class="mob-1" x1="60.8" y1="71.1" x2="68.87" y2="82.13"/> <line class="mob-1" x1="61.22" y1="70.76" x2="60.79" y2="71.08"/> <path class="mob-1" d="M61.64,70.43c-1.73-2.18-4.39-3.57-7.39-3.57"/> <path class="mob-1" d="M54.25,67.94c2.64,0,5,1.22,6.54,3.14t.01.02l.42-.34"/> <polyline class="mob-1" points="32.2 67.94 54.25 67.94 54.25 67.4 54.25 66.86 32.2 66.86"/> <path class="mob-1" d="M25.64,71.11c1.54-1.93,3.9-3.17,6.56-3.17v-1.08c-3.01,0-5.68,1.41-7.41,3.6"/> <line class="mob-1" x1="25.21" y1="70.79" x2="25.63" y2="71.12"/> <line class="mob-1" x1="16.71" y1="81.5" x2="17.15" y2="81.82"/> <line class="mob-1" x1="24.77" y1="70.47" x2="16.72" y2="81.48"/> <polyline class="mob-1" points="17.58 82.13 25.63 71.12 25.64 71.11 25.21 70.79"/> <path class="mob-1" d="M17.15,81.82l-.43-.34s0,.01,0,.02c-1.54,1.93-3.91,3.17-6.56,3.17"/> <path class="mob-1" d="M10.15,85.75c3.01,0,5.69-1.41,7.42-3.6"/> <path class="mob-1" d="M.71,76.3c0,5.22,4.22,9.45,9.44,9.45v-1.08c-4.62,0-8.37-3.74-8.37-8.37"/> <polyline class="mob-1" points=".71 10.15 .71 76.3 1.24 76.3 1.78 76.3 1.78 10.15"/> <path class="mob-1" d="M10.15.71C4.93.71.71,4.93.71,10.15h1.07C1.78,5.53,5.53,1.78,10.15,1.78"/> <polyline class="mob-1" points="76.3 .71 10.15 .71 10.15 1.25 10.15 1.78 76.3 1.78"/> <path class="mob-1" d="M85.75,10.15c0-1.11-.19-2.17-.54-3.16-1.3-3.66-4.8-6.28-8.91-6.28v1.07c4.62,0,8.37,3.75,8.37,8.37"/> <polyline class="mob-1" points="85.75 76.3 85.75 10.15 85.21 10.15 84.67 10.15 84.67 76.3"/> <path class="mob-1" d="M76.3,85.75c4.11,0,7.61-2.62,8.91-6.29.35-.99.54-2.05.54-3.16h-1.08c0,4.63-3.75,8.37-8.37,8.37"/> <path class="mob-1" d="M68.89,82.15c1.72,2.19,4.4,3.6,7.41,3.6v-1.08c-2.65,0-5.02-1.24-6.56-3.17t-.01-.02l-.42.34"/> <polygon class="mob-1" points="61.22 70.76 61.66 70.45 61.65 70.44 61.64 70.43 61.22 70.76"/> <polygon class="mob-1" points="25.21 70.79 24.79 70.46 24.78 70.46 24.77 70.47 25.21 70.79"/> <polygon class="mob-1" points="17.15 81.82 17.57 82.15 17.57 82.14 17.58 82.13 17.15 81.82"/> <polygon class="mob-1" points="69.31 81.82 68.87 82.13 68.88 82.14 68.89 82.15 69.31 81.82"/> <path class="mob-1" d="M270.87,76.74c0-4.99-4.1-9.02-9.14-9.02"/> <path class="mob-1" d="M261.73,68.8c4.46,0,8.06,3.56,8.06,7.94"/> <path class="mob-1" d="M253.67,76.74c0-4.38,3.6-7.94,8.06-7.94v-1.08c-3.49,0-6.52,1.93-8.06,4.78-.62,1.14-.99,2.43-1.06,3.8-.01.14-.01.29-.01.44"/> <path class="mob-1" d="M261.73,84.67c-4.46,0-8.06-3.56-8.06-7.93h-1.07c0,1,.17,1.97.47,2.87,1.22,3.57,4.64,6.14,8.66,6.14"/> <path class="mob-1" d="M270.87,76.74h-1.08c0,4.37-3.6,7.93-8.06,7.93v1.08c5.04,0,9.14-4.03,9.14-9.01Z"/> </g> </g> </g> </svg></div>
+    <div class="topbar-date" id="topbar-date"></div>
+  </header>
+  <div id="cache-indicator" style="position:fixed;top:0;left:0;right:0;text-align:center;font-size:10px;padding:3px;background:var(--accent);color:#fff;letter-spacing:1px;opacity:0;transition:opacity .5s;z-index:50;pointer-events:none;"></div>
+
+  <!-- SCROLL AREA -->
+  <div class="scroll-area">
+
+    <!-- ═══ SEGUIMIENTO ═══ -->
+    <section class="page active" id="page-seguimiento">
+      <div class="page-title">Seguimiento</div>
+
+      <div class="stats-row" id="seg-stats"></div>
+
+      <div class="search-box">
+        <input type="search" id="seg-search" placeholder="Buscar cliente, producto…" autocomplete="off">
+      </div>
+
+      <div class="filter-chips">
+        <button class="chip on" data-filter="all">Todos</button>
+        <button class="chip" data-filter="activos">En producción</button>
+        <button class="chip" data-filter="paraentregar">Para entregar</button>
+      </div>
+
+      <div class="pedido-list" id="seg-list"></div>
+      <button class="load-more" id="seg-more" style="display:none">Ver más pedidos</button>
+      <div class="page-bottom-pad"></div>
+    </section>
+
+    <!-- ═══ OT PROVEEDOR ═══ -->
+    <section class="page" id="page-ot">
+      <div class="page-title">OT Proveedor</div>
+      <div class="prov-chips" id="ot-chips"></div>
+      <div id="ot-list"></div>
+      <div class="page-bottom-pad"></div>
+    </section>
+
+    <!-- ═══ STOCK ═══ -->
+    <section class="page" id="page-stock">
+      <div class="page-title">Control Stock</div>
+      <div class="stats-row cols3" id="stock-stats"></div>
+      <div class="stock-list" id="stock-list"></div>
+      <div class="page-bottom-pad"></div>
+    </section>
+
+    <!-- ═══ PAGOS ═══ -->
+    <section class="page" id="page-pp">
+      <div class="page-title">Pagos</div>
+      <div class="stats-row" id="pp-stats"></div>
+      <div id="pagos-list"></div>
+      <div class="page-bottom-pad"></div>
+    </section>
+
+    <!-- ═══ BITÁCORA ═══ -->
+    <section class="page" id="page-bitacora">
+      <div class="page-title">Bitácora</div>
+      <div id="bit-list"></div>
+      <div class="page-bottom-pad"></div>
+    </section>
+
+  </div><!-- /scroll-area -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="sidebar-logo" id="sidebar-logo-wrap"><?xml version="1.0" encoding="UTF-8"?> <svg id="Capa_2" data-name="Capa 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 271.58 86.46"> <defs> <style> .cls-1 { fill: none; stroke: #ffffff; stroke-miterlimit: 10; stroke-width: 1.42px; } .cls-2 { fill: transparent; } .cls-3 { fill: #ffffff; } </style> </defs> <g id="Capa_1-2" data-name="Capa 1"> <g> <g> <path class="cls-2" d="M261.73,68.8c4.46,0,8.06,3.56,8.06,7.94s-3.6,7.93-8.06,7.93-8.06-3.56-8.06-7.93,3.6-7.94,8.06-7.94Z"/> <path class="cls-2" d="M252.6,10.15v66.15c0,4.63-3.75,8.37-8.37,8.37-2.66,0-5.02-1.24-6.56-3.17t-.01-.02l-8.08-11.03h0s-.01-.02-.01-.02c-1.73-2.18-4.4-3.57-7.39-3.57h-22.05c-3.01,0-5.69,1.41-7.42,3.6h-.01s-8.05,11.02-8.05,11.02t-.01.02c-1.55,1.93-3.91,3.17-6.56,3.17-4.63,0-8.37-3.74-8.37-8.37,0-5.21-4.23-9.44-9.44-9.44h-44.12c-.87,0-1.58-.71-1.58-1.58s.71-1.58,1.58-1.58h44.12c5.21,0,9.44-4.23,9.44-9.45V10.15c0-4.62,3.74-8.37,8.37-8.37h66.15c4.62,0,8.37,3.75,8.37,8.37Z"/> <path class="cls-2" d="M168.63,43.23v11.02c0,4.62-3.74,8.37-8.36,8.37h-44.12c-1.46,0-2.65,1.19-2.65,2.66s1.19,2.66,2.65,2.66h44.12c4.62,0,8.36,3.74,8.36,8.36s-3.74,8.37-8.36,8.37h-66.16c-4.62,0-8.36-3.74-8.36-8.37V10.15c0-4.62,3.74-8.37,8.36-8.37h66.16c4.62,0,8.36,3.75,8.36,8.37v33.08Z"/> <path class="cls-2" d="M84.67,10.15v66.15c0,4.63-3.75,8.37-8.37,8.37-2.65,0-5.02-1.24-6.56-3.17t-.01-.02l-8.07-11.03h-.01s-.01-.02-.01-.02c-1.73-2.18-4.39-3.57-7.39-3.57h-22.05c-3.01,0-5.68,1.41-7.41,3.6h-.02s-8.05,11.02-8.05,11.02t0,.02c-1.54,1.93-3.91,3.17-6.56,3.17-4.62,0-8.37-3.74-8.37-8.37V10.15C1.78,5.53,5.53,1.78,10.15,1.78h66.15c4.62,0,8.37,3.75,8.37,8.37Z"/> <path class="cls-3" d="M270.33,76.74h.54c0,4.98-4.1,9.01-9.14,9.01v-1.08c4.46,0,8.06-3.56,8.06-7.93h.54Z"/> <path class="cls-3" d="M270.87,76.74h-1.08c0-4.38-3.6-7.94-8.06-7.94v-1.08c5.04,0,9.14,4.03,9.14,9.02Z"/> <path class="cls-3" d="M261.73,85.21v.54c-4.02,0-7.44-2.57-8.66-6.14.34-.9.54-1.87.59-2.87h.01c0,4.37,3.6,7.93,8.06,7.93v.54Z"/> <path class="cls-3" d="M253.67,76.3v-3.8c1.54-2.85,4.57-4.78,8.06-4.78v1.08c-4.46,0-8.06,3.56-8.06,7.94h-.01c.01-.15.01-.29.01-.44Z"/> <path class="cls-3" d="M253.67,72.5v3.8h-1.06c.07-1.37.44-2.66,1.06-3.8Z"/> <path class="cls-3" d="M253.67,10.15v62.35c-.62,1.14-.99,2.43-1.06,3.8h-.01V10.15h1.07Z"/> <path class="cls-3" d="M253.67,76.3c0,.15,0,.29-.01.44h-1.06c0-.15,0-.3.01-.44h1.06Z"/> <path class="cls-3" d="M253.67,10.15h-1.07c0-4.62-3.75-8.37-8.37-8.37V.71c5.21,0,9.44,4.22,9.44,9.44Z"/> <path class="cls-3" d="M253.13,76.74h.53c-.05,1-.25,1.97-.59,2.87-.3-.9-.47-1.87-.47-2.87h.53Z"/> <path class="cls-3" d="M252.6,76.74c0,1,.17,1.97.47,2.87-1.34,3.59-4.79,6.14-8.84,6.14v-1.08c4.62,0,8.37-3.74,8.37-8.37h.01c-.01.14-.01.29-.01.44Z"/> <path class="cls-3" d="M244.23,85.21v.54c-3.01,0-5.69-1.41-7.42-3.6l.42-.33.44-.32c1.54,1.93,3.9,3.17,6.56,3.17v.54Z"/> <polygon class="cls-3" points="244.23 1.25 244.23 1.78 178.08 1.78 178.08 1.25 178.08 .71 244.23 .71 244.23 1.25"/> <path class="cls-3" d="M237.66,81.48s.01.01.01.02l-.44.32.43-.34Z"/> <polygon class="cls-3" points="237.66 81.48 237.23 81.82 236.8 82.13 228.73 71.1 229.15 70.76 229.58 70.45 237.66 81.48"/> <polygon class="cls-3" points="237.23 81.82 236.81 82.15 236.8 82.14 236.8 82.13 237.23 81.82"/> <polygon class="cls-3" points="229.58 70.44 229.58 70.45 229.15 70.76 229.57 70.43 229.58 70.44"/> <path class="cls-3" d="M229.57,70.43l-.42.33-.44.32c-1.54-1.92-3.89-3.14-6.53-3.14v-1.08c2.99,0,5.66,1.39,7.39,3.57Z"/> <path class="cls-3" d="M229.15,70.76l-.42.34-.02-.02.44-.32Z"/> <polygon class="cls-3" points="222.18 67.4 222.18 67.94 200.13 67.94 200.13 67.4 200.13 66.86 222.18 66.86 222.18 67.4"/> <path class="cls-3" d="M200.13,67.4v.54c-2.67,0-5.03,1.24-6.56,3.17l-.44-.32-.42-.33c1.73-2.19,4.41-3.6,7.42-3.6v.54Z"/> <polygon class="cls-3" points="193.57 71.11 193.56 71.12 193.13 70.79 193.57 71.11"/> <polygon class="cls-3" points="193.56 71.12 185.51 82.13 185.07 81.82 184.65 81.48 192.7 70.47 193.13 70.79 193.56 71.12"/> <polygon class="cls-3" points="193.13 70.79 192.7 70.47 192.71 70.46 193.13 70.79"/> <polygon class="cls-3" points="185.51 82.13 185.5 82.14 185.49 82.15 185.07 81.82 185.51 82.13"/> <path class="cls-3" d="M185.07,81.82l.42.33c-1.73,2.19-4.41,3.6-7.41,3.6v-1.08c2.65,0,5.01-1.24,6.56-3.17l.43.32Z"/> <path class="cls-3" d="M185.07,81.82l-.43-.32s0-.01.01-.02l.42.34Z"/> <path class="cls-3" d="M178.08,85.21v.54c-4.11,0-7.61-2.62-8.91-6.29.35-.99.54-2.05.54-3.16,0,4.63,3.74,8.37,8.37,8.37v.54Z"/> <path class="cls-3" d="M178.08,1.25v.53c-4.63,0-8.37,3.75-8.37,8.37,0-1.11-.19-2.17-.54-3.16,1.3-3.66,4.8-6.28,8.91-6.28v.54Z"/> <polygon class="cls-3" points="169.71 43.23 169.71 54.25 169.17 54.25 168.63 54.25 168.63 43.23 169.17 43.23 169.71 43.23"/> <polygon class="cls-3" points="169.71 10.15 169.71 43.23 169.17 43.23 168.63 43.23 168.63 10.15 169.17 10.15 169.71 10.15"/> <path class="cls-3" d="M169.71,10.15h-1.08c0-1.11.19-2.17.54-3.16.35.99.54,2.05.54,3.16Z"/> <path class="cls-3" d="M169.17,54.25h.54c0,5.22-4.23,9.45-9.44,9.45v-1.08c4.62,0,8.36-3.75,8.36-8.37h.54Z"/> <path class="cls-3" d="M169.17,76.3h.54c0,1.11-.19,2.17-.54,3.16-.35-.99-.54-2.05-.54-3.16h.54Z"/> <path class="cls-3" d="M169.71,76.3h-1.08c0-4.62-3.74-8.36-8.36-8.36v-1.08c5.21,0,9.44,4.23,9.44,9.44Z"/> <path class="cls-3" d="M169.17,6.99c-.35.99-.54,2.05-.54,3.16,0-4.62-3.74-8.37-8.36-8.37V.71c4.1,0,7.6,2.62,8.9,6.28Z"/> <path class="cls-3" d="M168.63,76.3c0,1.11.19,2.17.54,3.16-1.3,3.67-4.8,6.29-8.9,6.29v-1.08c4.62,0,8.36-3.74,8.36-8.37Z"/> <polygon class="cls-3" points="160.27 85.21 160.27 85.75 94.11 85.75 94.11 85.21 94.11 84.67 160.27 84.67 160.27 85.21"/> <polygon class="cls-3" points="160.27 67.4 160.27 67.94 116.15 67.94 116.15 67.4 116.15 66.86 160.27 66.86 160.27 67.4"/> <polygon class="cls-3" points="160.27 63.16 160.27 63.7 116.15 63.7 116.15 63.16 116.15 62.62 160.27 62.62 160.27 63.16"/> <polygon class="cls-3" points="160.27 1.25 160.27 1.78 94.11 1.78 94.11 1.25 94.11 .71 160.27 .71 160.27 1.25"/> <path class="cls-3" d="M116.15,67.4v.54c-1.46,0-2.65-1.19-2.65-2.66h1.07c0,.87.71,1.58,1.58,1.58v.54Z"/> <path class="cls-3" d="M116.15,63.16v.54c-.87,0-1.58.7-1.58,1.58h-1.07c0-1.47,1.19-2.66,2.65-2.66v.54Z"/> <path class="cls-3" d="M94.11,85.21v.54c-4.1,0-7.6-2.62-8.9-6.29.35-.99.54-2.05.54-3.16,0,4.63,3.74,8.37,8.36,8.37v.54Z"/> <path class="cls-3" d="M94.11,1.25v.53c-4.62,0-8.36,3.75-8.36,8.37,0-1.11-.19-2.17-.54-3.16,1.3-3.66,4.8-6.28,8.9-6.28v.54Z"/> <polygon class="cls-3" points="85.75 10.15 85.75 76.3 85.21 76.3 84.67 76.3 84.67 10.15 85.21 10.15 85.75 10.15"/> <path class="cls-3" d="M85.75,10.15h-1.08c0-1.11.19-2.17.54-3.16.35.99.54,2.05.54,3.16Z"/> <path class="cls-3" d="M85.21,76.3h.54c0,1.11-.19,2.17-.54,3.16-.35-.99-.54-2.05-.54-3.16h.54Z"/> <path class="cls-3" d="M85.21,6.99c-.35.99-.54,2.05-.54,3.16,0-4.62-3.75-8.37-8.37-8.37V.71c4.11,0,7.61,2.62,8.91,6.28Z"/> <path class="cls-3" d="M84.67,76.3c0,1.11.19,2.17.54,3.16-1.3,3.67-4.8,6.29-8.91,6.29v-1.08c4.62,0,8.37-3.74,8.37-8.37Z"/> <path class="cls-3" d="M76.3,85.21v.54c-3.01,0-5.69-1.41-7.41-3.6l.42-.33.43-.32c1.54,1.93,3.91,3.17,6.56,3.17v.54Z"/> <polygon class="cls-3" points="76.3 1.25 76.3 1.78 10.15 1.78 10.15 1.25 10.15 .71 76.3 .71 76.3 1.25"/> <path class="cls-3" d="M69.73,81.48s.01.01.01.02l-.43.32.42-.34Z"/> <polygon class="cls-3" points="69.73 81.48 69.31 81.82 68.87 82.13 60.8 71.1 61.22 70.76 61.66 70.45 69.73 81.48"/> <polygon class="cls-3" points="69.31 81.82 68.89 82.15 68.88 82.14 68.87 82.13 69.31 81.82"/> <polygon class="cls-3" points="61.66 70.45 61.22 70.76 61.64 70.43 61.65 70.44 61.66 70.45"/> <path class="cls-3" d="M61.64,70.43l-.42.33-.43.32c-1.54-1.92-3.9-3.14-6.54-3.14v-1.08c3,0,5.66,1.39,7.39,3.57Z"/> <path class="cls-3" d="M61.22,70.76l-.42.34s-.01-.01-.01-.02l.43-.32Z"/> <polygon class="cls-3" points="54.25 67.4 54.25 67.94 32.2 67.94 32.2 67.4 32.2 66.86 54.25 66.86 54.25 67.4"/> <path class="cls-3" d="M32.2,67.4v.54c-2.66,0-5.02,1.24-6.56,3.17l-.43-.32-.42-.33c1.73-2.19,4.4-3.6,7.41-3.6v.54Z"/> <polygon class="cls-3" points="25.64 71.11 25.63 71.12 25.21 70.79 25.64 71.11"/> <polygon class="cls-3" points="25.63 71.12 17.58 82.13 17.15 81.82 16.72 81.48 24.77 70.47 25.21 70.79 25.63 71.12"/> <polygon class="cls-3" points="25.21 70.79 24.77 70.47 24.78 70.46 24.79 70.46 25.21 70.79"/> <polygon class="cls-3" points="17.58 82.13 17.57 82.14 17.57 82.15 17.15 81.82 17.58 82.13"/> <path class="cls-3" d="M17.15,81.82l.42.33c-1.73,2.19-4.41,3.6-7.42,3.6v-1.08c2.65,0,5.02-1.24,6.56-3.17l.44.32Z"/> <path class="cls-3" d="M17.15,81.82l-.44-.32s0-.01,0-.02l.43.34Z"/> <path class="cls-3" d="M10.15,85.21v.54c-5.22,0-9.44-4.23-9.44-9.45h1.07c0,4.63,3.75,8.37,8.37,8.37v.54Z"/> <path class="cls-3" d="M10.15,1.25v.53C5.53,1.78,1.78,5.53,1.78,10.15H.71C.71,4.93,4.93.71,10.15.71v.54Z"/> <polygon class="cls-3" points="1.78 10.15 1.78 76.3 1.24 76.3 .71 76.3 .71 10.15 1.24 10.15 1.78 10.15"/> </g> <g> <line class="cls-1" x1="160.27" y1="62.62" x2="116.15" y2="62.62"/> <line class="cls-1" x1="116.15" y1="63.7" x2="160.27" y2="63.7"/> <path class="cls-1" d="M114.57,65.28c0-.88.71-1.58,1.58-1.58v-1.08c-1.46,0-2.65,1.19-2.65,2.66"/> <path class="cls-1" d="M116.15,66.86c-.87,0-1.58-.71-1.58-1.58h-1.07c0,1.47,1.19,2.66,2.65,2.66"/> <polyline class="cls-1" points="160.27 66.86 116.15 66.86 116.15 67.4 116.15 67.94 160.27 67.94"/> <path class="cls-1" d="M169.71,76.3c0-5.21-4.23-9.44-9.44-9.44v1.08c4.62,0,8.36,3.74,8.36,8.36"/> <path class="cls-1" d="M168.63,76.3c0,4.63-3.74,8.37-8.36,8.37"/> <path class="cls-1" d="M160.27,85.75c4.1,0,7.6-2.62,8.9-6.29"/> <polyline class="cls-1" points="94.11 85.75 160.27 85.75 160.27 85.21 160.27 84.67 94.11 84.67"/> <path class="cls-1" d="M85.21,79.46c1.3,3.67,4.8,6.29,8.9,6.29v-1.08c-4.62,0-8.36-3.74-8.36-8.37"/> <path class="cls-1" d="M85.75,10.15c0-4.62,3.74-8.37,8.36-8.37"/> <path class="cls-1" d="M94.11.71c-4.1,0-7.6,2.62-8.9,6.28"/> <polyline class="cls-1" points="160.27 .71 94.11 .71 94.11 1.25 94.11 1.78 160.27 1.78"/> <path class="cls-1" d="M169.17,6.99c-1.3-3.66-4.8-6.28-8.9-6.28v1.07c4.62,0,8.36,3.75,8.36,8.37"/> <line class="cls-1" x1="168.63" y1="43.23" x2="168.63" y2="54.25"/> <line class="cls-1" x1="169.71" y1="54.25" x2="169.71" y2="43.23"/> <path class="cls-1" d="M160.27,62.62v1.08c5.21,0,9.44-4.23,9.44-9.45h-1.08c0,4.62-3.74,8.37-8.36,8.37Z"/> <polyline class="cls-1" points="168.63 10.15 168.63 43.23 169.17 43.23 169.71 43.23 169.71 10.15"/> <line class="cls-1" x1="237.66" y1="81.48" x2="229.58" y2="70.45"/> <line class="cls-1" x1="237.23" y1="81.82" x2="237.67" y2="81.5"/> <line class="cls-1" x1="228.73" y1="71.1" x2="236.8" y2="82.13"/> <line class="cls-1" x1="229.15" y1="70.76" x2="228.71" y2="71.08"/> <path class="cls-1" d="M229.57,70.43c-1.73-2.18-4.4-3.57-7.39-3.57"/> <path class="cls-1" d="M222.18,67.94c2.64,0,4.99,1.22,6.53,3.14l.02.02.42-.34"/> <polyline class="cls-1" points="200.13 67.94 222.18 67.94 222.18 67.4 222.18 66.86 200.13 66.86"/> <path class="cls-1" d="M193.57,71.11c1.53-1.93,3.89-3.17,6.56-3.17v-1.08c-3.01,0-5.69,1.41-7.42,3.6"/> <line class="cls-1" x1="193.13" y1="70.79" x2="193.56" y2="71.12"/> <line class="cls-1" x1="184.64" y1="81.5" x2="185.07" y2="81.82"/> <line class="cls-1" x1="192.7" y1="70.47" x2="184.65" y2="81.48"/> <polyline class="cls-1" points="185.51 82.13 193.56 71.12 193.57 71.11 193.13 70.79"/> <path class="cls-1" d="M185.07,81.82l-.42-.34s-.01.01-.01.02c-1.55,1.93-3.91,3.17-6.56,3.17"/> <path class="cls-1" d="M178.08,85.75c3,0,5.68-1.41,7.41-3.6"/> <path class="cls-1" d="M169.71,76.3h-1.08c0,1.11.19,2.17.54,3.16,1.3,3.67,4.8,6.29,8.91,6.29v-1.08c-4.63,0-8.37-3.74-8.37-8.37Z"/> <path class="cls-1" d="M178.08.71c-4.11,0-7.61,2.62-8.91,6.28-.35.99-.54,2.05-.54,3.16h1.08c0-4.62,3.74-8.37,8.37-8.37"/> <polyline class="cls-1" points="244.23 .71 178.08 .71 178.08 1.25 178.08 1.78 244.23 1.78"/> <path class="cls-1" d="M253.67,10.15c0-5.22-4.23-9.44-9.44-9.44v1.07c4.62,0,8.37,3.75,8.37,8.37"/> <polyline class="cls-1" points="253.67 72.5 253.67 10.15 253.13 10.15 252.6 10.15 252.6 76.3"/> <path class="cls-1" d="M252.61,76.3h-.01c0,4.63-3.75,8.37-8.37,8.37"/> <path class="cls-1" d="M244.23,85.75c4.05,0,7.5-2.55,8.84-6.14"/> <path class="cls-1" d="M236.81,82.15c1.73,2.19,4.41,3.6,7.42,3.6v-1.08c-2.66,0-5.02-1.24-6.56-3.17t-.01-.02l-.43.34"/> <polygon class="cls-1" points="229.15 70.76 229.58 70.45 229.58 70.44 229.57 70.43 229.15 70.76"/> <polygon class="cls-1" points="193.13 70.79 192.71 70.46 192.7 70.47 193.13 70.79"/> <polygon class="cls-1" points="185.07 81.82 185.49 82.15 185.5 82.14 185.51 82.13 185.07 81.82"/> <polygon class="cls-1" points="237.23 81.82 236.8 82.13 236.8 82.14 236.81 82.15 237.23 81.82"/> <line class="cls-1" x1="69.73" y1="81.48" x2="61.66" y2="70.45"/> <line class="cls-1" x1="69.31" y1="81.82" x2="69.74" y2="81.5"/> <line class="cls-1" x1="60.8" y1="71.1" x2="68.87" y2="82.13"/> <line class="cls-1" x1="61.22" y1="70.76" x2="60.79" y2="71.08"/> <path class="cls-1" d="M61.64,70.43c-1.73-2.18-4.39-3.57-7.39-3.57"/> <path class="cls-1" d="M54.25,67.94c2.64,0,5,1.22,6.54,3.14t.01.02l.42-.34"/> <polyline class="cls-1" points="32.2 67.94 54.25 67.94 54.25 67.4 54.25 66.86 32.2 66.86"/> <path class="cls-1" d="M25.64,71.11c1.54-1.93,3.9-3.17,6.56-3.17v-1.08c-3.01,0-5.68,1.41-7.41,3.6"/> <line class="cls-1" x1="25.21" y1="70.79" x2="25.63" y2="71.12"/> <line class="cls-1" x1="16.71" y1="81.5" x2="17.15" y2="81.82"/> <line class="cls-1" x1="24.77" y1="70.47" x2="16.72" y2="81.48"/> <polyline class="cls-1" points="17.58 82.13 25.63 71.12 25.64 71.11 25.21 70.79"/> <path class="cls-1" d="M17.15,81.82l-.43-.34s0,.01,0,.02c-1.54,1.93-3.91,3.17-6.56,3.17"/> <path class="cls-1" d="M10.15,85.75c3.01,0,5.69-1.41,7.42-3.6"/> <path class="cls-1" d="M.71,76.3c0,5.22,4.22,9.45,9.44,9.45v-1.08c-4.62,0-8.37-3.74-8.37-8.37"/> <polyline class="cls-1" points=".71 10.15 .71 76.3 1.24 76.3 1.78 76.3 1.78 10.15"/> <path class="cls-1" d="M10.15.71C4.93.71.71,4.93.71,10.15h1.07C1.78,5.53,5.53,1.78,10.15,1.78"/> <polyline class="cls-1" points="76.3 .71 10.15 .71 10.15 1.25 10.15 1.78 76.3 1.78"/> <path class="cls-1" d="M85.75,10.15c0-1.11-.19-2.17-.54-3.16-1.3-3.66-4.8-6.28-8.91-6.28v1.07c4.62,0,8.37,3.75,8.37,8.37"/> <polyline class="cls-1" points="85.75 76.3 85.75 10.15 85.21 10.15 84.67 10.15 84.67 76.3"/> <path class="cls-1" d="M76.3,85.75c4.11,0,7.61-2.62,8.91-6.29.35-.99.54-2.05.54-3.16h-1.08c0,4.63-3.75,8.37-8.37,8.37"/> <path class="cls-1" d="M68.89,82.15c1.72,2.19,4.4,3.6,7.41,3.6v-1.08c-2.65,0-5.02-1.24-6.56-3.17t-.01-.02l-.42.34"/> <polygon class="cls-1" points="61.22 70.76 61.66 70.45 61.65 70.44 61.64 70.43 61.22 70.76"/> <polygon class="cls-1" points="25.21 70.79 24.79 70.46 24.78 70.46 24.77 70.47 25.21 70.79"/> <polygon class="cls-1" points="17.15 81.82 17.57 82.15 17.57 82.14 17.58 82.13 17.15 81.82"/> <polygon class="cls-1" points="69.31 81.82 68.87 82.13 68.88 82.14 68.89 82.15 69.31 81.82"/> <path class="cls-1" d="M270.87,76.74c0-4.99-4.1-9.02-9.14-9.02"/> <path class="cls-1" d="M261.73,68.8c4.46,0,8.06,3.56,8.06,7.94"/> <path class="cls-1" d="M253.67,76.74c0-4.38,3.6-7.94,8.06-7.94v-1.08c-3.49,0-6.52,1.93-8.06,4.78-.62,1.14-.99,2.43-1.06,3.8-.01.14-.01.29-.01.44"/> <path class="cls-1" d="M261.73,84.67c-4.46,0-8.06-3.56-8.06-7.93h-1.07c0,1,.17,1.97.47,2.87,1.22,3.57,4.64,6.14,8.66,6.14"/> <path class="cls-1" d="M270.87,76.74h-1.08c0,4.37-3.6,7.93-8.06,7.93v1.08c5.04,0,9.14-4.03,9.14-9.01Z"/> </g> </g> </g> </svg></div>
+    <button class="nav-item active" data-page="seguimiento">
+      <span class="nav-ico nav-dot">📋</span>
+      <span class="nav-lbl">Pedidos</span>
+    </button>
+    <button class="nav-item" data-page="ot">
+      <span class="nav-ico">⚒️</span>
+      <span class="nav-lbl">OTs</span>
+    </button>
+    <button class="nav-item" data-page="stock">
+      <span class="nav-ico">📦</span>
+      <span class="nav-lbl">Stock</span>
+    </button>
+    <button class="nav-item" data-page="pp">
+      <span class="nav-ico">💰</span>
+      <span class="nav-lbl">Pagos</span>
+    </button>
+    <button class="nav-item" data-page="bitacora">
+      <span class="nav-ico">📝</span>
+      <span class="nav-lbl">Bitácora</span>
+    </button>
+  </nav>
+
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,26,23,.7);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+    <div id="loading-logo" style="width:180px;animation:logoSpin 2s linear infinite;"><svg id="LdrCapa_2" data-name="LdrCapa2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 271.58 86.46"> <defs> <style> .ldr-1 { fill: none; stroke: #ffffff; stroke-miterlimit: 10; stroke-width: 1.42px; } .ldr-2 { fill: transparent; } .ldr-3 { fill: #ffffff; } </style> </defs> <g id="LdrCapa_1-2" data-name="LdrCapa1"> <g> <g> <path class="ldr-2" d="M261.73,68.8c4.46,0,8.06,3.56,8.06,7.94s-3.6,7.93-8.06,7.93-8.06-3.56-8.06-7.93,3.6-7.94,8.06-7.94Z"/> <path class="ldr-2" d="M252.6,10.15v66.15c0,4.63-3.75,8.37-8.37,8.37-2.66,0-5.02-1.24-6.56-3.17t-.01-.02l-8.08-11.03h0s-.01-.02-.01-.02c-1.73-2.18-4.4-3.57-7.39-3.57h-22.05c-3.01,0-5.69,1.41-7.42,3.6h-.01s-8.05,11.02-8.05,11.02t-.01.02c-1.55,1.93-3.91,3.17-6.56,3.17-4.63,0-8.37-3.74-8.37-8.37,0-5.21-4.23-9.44-9.44-9.44h-44.12c-.87,0-1.58-.71-1.58-1.58s.71-1.58,1.58-1.58h44.12c5.21,0,9.44-4.23,9.44-9.45V10.15c0-4.62,3.74-8.37,8.37-8.37h66.15c4.62,0,8.37,3.75,8.37,8.37Z"/> <path class="ldr-2" d="M168.63,43.23v11.02c0,4.62-3.74,8.37-8.36,8.37h-44.12c-1.46,0-2.65,1.19-2.65,2.66s1.19,2.66,2.65,2.66h44.12c4.62,0,8.36,3.74,8.36,8.36s-3.74,8.37-8.36,8.37h-66.16c-4.62,0-8.36-3.74-8.36-8.37V10.15c0-4.62,3.74-8.37,8.36-8.37h66.16c4.62,0,8.36,3.75,8.36,8.37v33.08Z"/> <path class="ldr-2" d="M84.67,10.15v66.15c0,4.63-3.75,8.37-8.37,8.37-2.65,0-5.02-1.24-6.56-3.17t-.01-.02l-8.07-11.03h-.01s-.01-.02-.01-.02c-1.73-2.18-4.39-3.57-7.39-3.57h-22.05c-3.01,0-5.68,1.41-7.41,3.6h-.02s-8.05,11.02-8.05,11.02t0,.02c-1.54,1.93-3.91,3.17-6.56,3.17-4.62,0-8.37-3.74-8.37-8.37V10.15C1.78,5.53,5.53,1.78,10.15,1.78h66.15c4.62,0,8.37,3.75,8.37,8.37Z"/> <path class="ldr-3" d="M270.33,76.74h.54c0,4.98-4.1,9.01-9.14,9.01v-1.08c4.46,0,8.06-3.56,8.06-7.93h.54Z"/> <path class="ldr-3" d="M270.87,76.74h-1.08c0-4.38-3.6-7.94-8.06-7.94v-1.08c5.04,0,9.14,4.03,9.14,9.02Z"/> <path class="ldr-3" d="M261.73,85.21v.54c-4.02,0-7.44-2.57-8.66-6.14.34-.9.54-1.87.59-2.87h.01c0,4.37,3.6,7.93,8.06,7.93v.54Z"/> <path class="ldr-3" d="M253.67,76.3v-3.8c1.54-2.85,4.57-4.78,8.06-4.78v1.08c-4.46,0-8.06,3.56-8.06,7.94h-.01c.01-.15.01-.29.01-.44Z"/> <path class="ldr-3" d="M253.67,72.5v3.8h-1.06c.07-1.37.44-2.66,1.06-3.8Z"/> <path class="ldr-3" d="M253.67,10.15v62.35c-.62,1.14-.99,2.43-1.06,3.8h-.01V10.15h1.07Z"/> <path class="ldr-3" d="M253.67,76.3c0,.15,0,.29-.01.44h-1.06c0-.15,0-.3.01-.44h1.06Z"/> <path class="ldr-3" d="M253.67,10.15h-1.07c0-4.62-3.75-8.37-8.37-8.37V.71c5.21,0,9.44,4.22,9.44,9.44Z"/> <path class="ldr-3" d="M253.13,76.74h.53c-.05,1-.25,1.97-.59,2.87-.3-.9-.47-1.87-.47-2.87h.53Z"/> <path class="ldr-3" d="M252.6,76.74c0,1,.17,1.97.47,2.87-1.34,3.59-4.79,6.14-8.84,6.14v-1.08c4.62,0,8.37-3.74,8.37-8.37h.01c-.01.14-.01.29-.01.44Z"/> <path class="ldr-3" d="M244.23,85.21v.54c-3.01,0-5.69-1.41-7.42-3.6l.42-.33.44-.32c1.54,1.93,3.9,3.17,6.56,3.17v.54Z"/> <polygon class="ldr-3" points="244.23 1.25 244.23 1.78 178.08 1.78 178.08 1.25 178.08 .71 244.23 .71 244.23 1.25"/> <path class="ldr-3" d="M237.66,81.48s.01.01.01.02l-.44.32.43-.34Z"/> <polygon class="ldr-3" points="237.66 81.48 237.23 81.82 236.8 82.13 228.73 71.1 229.15 70.76 229.58 70.45 237.66 81.48"/> <polygon class="ldr-3" points="237.23 81.82 236.81 82.15 236.8 82.14 236.8 82.13 237.23 81.82"/> <polygon class="ldr-3" points="229.58 70.44 229.58 70.45 229.15 70.76 229.57 70.43 229.58 70.44"/> <path class="ldr-3" d="M229.57,70.43l-.42.33-.44.32c-1.54-1.92-3.89-3.14-6.53-3.14v-1.08c2.99,0,5.66,1.39,7.39,3.57Z"/> <path class="ldr-3" d="M229.15,70.76l-.42.34-.02-.02.44-.32Z"/> <polygon class="ldr-3" points="222.18 67.4 222.18 67.94 200.13 67.94 200.13 67.4 200.13 66.86 222.18 66.86 222.18 67.4"/> <path class="ldr-3" d="M200.13,67.4v.54c-2.67,0-5.03,1.24-6.56,3.17l-.44-.32-.42-.33c1.73-2.19,4.41-3.6,7.42-3.6v.54Z"/> <polygon class="ldr-3" points="193.57 71.11 193.56 71.12 193.13 70.79 193.57 71.11"/> <polygon class="ldr-3" points="193.56 71.12 185.51 82.13 185.07 81.82 184.65 81.48 192.7 70.47 193.13 70.79 193.56 71.12"/> <polygon class="ldr-3" points="193.13 70.79 192.7 70.47 192.71 70.46 193.13 70.79"/> <polygon class="ldr-3" points="185.51 82.13 185.5 82.14 185.49 82.15 185.07 81.82 185.51 82.13"/> <path class="ldr-3" d="M185.07,81.82l.42.33c-1.73,2.19-4.41,3.6-7.41,3.6v-1.08c2.65,0,5.01-1.24,6.56-3.17l.43.32Z"/> <path class="ldr-3" d="M185.07,81.82l-.43-.32s0-.01.01-.02l.42.34Z"/> <path class="ldr-3" d="M178.08,85.21v.54c-4.11,0-7.61-2.62-8.91-6.29.35-.99.54-2.05.54-3.16,0,4.63,3.74,8.37,8.37,8.37v.54Z"/> <path class="ldr-3" d="M178.08,1.25v.53c-4.63,0-8.37,3.75-8.37,8.37,0-1.11-.19-2.17-.54-3.16,1.3-3.66,4.8-6.28,8.91-6.28v.54Z"/> <polygon class="ldr-3" points="169.71 43.23 169.71 54.25 169.17 54.25 168.63 54.25 168.63 43.23 169.17 43.23 169.71 43.23"/> <polygon class="ldr-3" points="169.71 10.15 169.71 43.23 169.17 43.23 168.63 43.23 168.63 10.15 169.17 10.15 169.71 10.15"/> <path class="ldr-3" d="M169.71,10.15h-1.08c0-1.11.19-2.17.54-3.16.35.99.54,2.05.54,3.16Z"/> <path class="ldr-3" d="M169.17,54.25h.54c0,5.22-4.23,9.45-9.44,9.45v-1.08c4.62,0,8.36-3.75,8.36-8.37h.54Z"/> <path class="ldr-3" d="M169.17,76.3h.54c0,1.11-.19,2.17-.54,3.16-.35-.99-.54-2.05-.54-3.16h.54Z"/> <path class="ldr-3" d="M169.71,76.3h-1.08c0-4.62-3.74-8.36-8.36-8.36v-1.08c5.21,0,9.44,4.23,9.44,9.44Z"/> <path class="ldr-3" d="M169.17,6.99c-.35.99-.54,2.05-.54,3.16,0-4.62-3.74-8.37-8.36-8.37V.71c4.1,0,7.6,2.62,8.9,6.28Z"/> <path class="ldr-3" d="M168.63,76.3c0,1.11.19,2.17.54,3.16-1.3,3.67-4.8,6.29-8.9,6.29v-1.08c4.62,0,8.36-3.74,8.36-8.37Z"/> <polygon class="ldr-3" points="160.27 85.21 160.27 85.75 94.11 85.75 94.11 85.21 94.11 84.67 160.27 84.67 160.27 85.21"/> <polygon class="ldr-3" points="160.27 67.4 160.27 67.94 116.15 67.94 116.15 67.4 116.15 66.86 160.27 66.86 160.27 67.4"/> <polygon class="ldr-3" points="160.27 63.16 160.27 63.7 116.15 63.7 116.15 63.16 116.15 62.62 160.27 62.62 160.27 63.16"/> <polygon class="ldr-3" points="160.27 1.25 160.27 1.78 94.11 1.78 94.11 1.25 94.11 .71 160.27 .71 160.27 1.25"/> <path class="ldr-3" d="M116.15,67.4v.54c-1.46,0-2.65-1.19-2.65-2.66h1.07c0,.87.71,1.58,1.58,1.58v.54Z"/> <path class="ldr-3" d="M116.15,63.16v.54c-.87,0-1.58.7-1.58,1.58h-1.07c0-1.47,1.19-2.66,2.65-2.66v.54Z"/> <path class="ldr-3" d="M94.11,85.21v.54c-4.1,0-7.6-2.62-8.9-6.29.35-.99.54-2.05.54-3.16,0,4.63,3.74,8.37,8.36,8.37v.54Z"/> <path class="ldr-3" d="M94.11,1.25v.53c-4.62,0-8.36,3.75-8.36,8.37,0-1.11-.19-2.17-.54-3.16,1.3-3.66,4.8-6.28,8.9-6.28v.54Z"/> <polygon class="ldr-3" points="85.75 10.15 85.75 76.3 85.21 76.3 84.67 76.3 84.67 10.15 85.21 10.15 85.75 10.15"/> <path class="ldr-3" d="M85.75,10.15h-1.08c0-1.11.19-2.17.54-3.16.35.99.54,2.05.54,3.16Z"/> <path class="ldr-3" d="M85.21,76.3h.54c0,1.11-.19,2.17-.54,3.16-.35-.99-.54-2.05-.54-3.16h.54Z"/> <path class="ldr-3" d="M85.21,6.99c-.35.99-.54,2.05-.54,3.16,0-4.62-3.75-8.37-8.37-8.37V.71c4.11,0,7.61,2.62,8.91,6.28Z"/> <path class="ldr-3" d="M84.67,76.3c0,1.11.19,2.17.54,3.16-1.3,3.67-4.8,6.29-8.91,6.29v-1.08c4.62,0,8.37-3.74,8.37-8.37Z"/> <path class="ldr-3" d="M76.3,85.21v.54c-3.01,0-5.69-1.41-7.41-3.6l.42-.33.43-.32c1.54,1.93,3.91,3.17,6.56,3.17v.54Z"/> <polygon class="ldr-3" points="76.3 1.25 76.3 1.78 10.15 1.78 10.15 1.25 10.15 .71 76.3 .71 76.3 1.25"/> <path class="ldr-3" d="M69.73,81.48s.01.01.01.02l-.43.32.42-.34Z"/> <polygon class="ldr-3" points="69.73 81.48 69.31 81.82 68.87 82.13 60.8 71.1 61.22 70.76 61.66 70.45 69.73 81.48"/> <polygon class="ldr-3" points="69.31 81.82 68.89 82.15 68.88 82.14 68.87 82.13 69.31 81.82"/> <polygon class="ldr-3" points="61.66 70.45 61.22 70.76 61.64 70.43 61.65 70.44 61.66 70.45"/> <path class="ldr-3" d="M61.64,70.43l-.42.33-.43.32c-1.54-1.92-3.9-3.14-6.54-3.14v-1.08c3,0,5.66,1.39,7.39,3.57Z"/> <path class="ldr-3" d="M61.22,70.76l-.42.34s-.01-.01-.01-.02l.43-.32Z"/> <polygon class="ldr-3" points="54.25 67.4 54.25 67.94 32.2 67.94 32.2 67.4 32.2 66.86 54.25 66.86 54.25 67.4"/> <path class="ldr-3" d="M32.2,67.4v.54c-2.66,0-5.02,1.24-6.56,3.17l-.43-.32-.42-.33c1.73-2.19,4.4-3.6,7.41-3.6v.54Z"/> <polygon class="ldr-3" points="25.64 71.11 25.63 71.12 25.21 70.79 25.64 71.11"/> <polygon class="ldr-3" points="25.63 71.12 17.58 82.13 17.15 81.82 16.72 81.48 24.77 70.47 25.21 70.79 25.63 71.12"/> <polygon class="ldr-3" points="25.21 70.79 24.77 70.47 24.78 70.46 24.79 70.46 25.21 70.79"/> <polygon class="ldr-3" points="17.58 82.13 17.57 82.14 17.57 82.15 17.15 81.82 17.58 82.13"/> <path class="ldr-3" d="M17.15,81.82l.42.33c-1.73,2.19-4.41,3.6-7.42,3.6v-1.08c2.65,0,5.02-1.24,6.56-3.17l.44.32Z"/> <path class="ldr-3" d="M17.15,81.82l-.44-.32s0-.01,0-.02l.43.34Z"/> <path class="ldr-3" d="M10.15,85.21v.54c-5.22,0-9.44-4.23-9.44-9.45h1.07c0,4.63,3.75,8.37,8.37,8.37v.54Z"/> <path class="ldr-3" d="M10.15,1.25v.53C5.53,1.78,1.78,5.53,1.78,10.15H.71C.71,4.93,4.93.71,10.15.71v.54Z"/> <polygon class="ldr-3" points="1.78 10.15 1.78 76.3 1.24 76.3 .71 76.3 .71 10.15 1.24 10.15 1.78 10.15"/> </g> <g> <line class="ldr-1" x1="160.27" y1="62.62" x2="116.15" y2="62.62"/> <line class="ldr-1" x1="116.15" y1="63.7" x2="160.27" y2="63.7"/> <path class="ldr-1" d="M114.57,65.28c0-.88.71-1.58,1.58-1.58v-1.08c-1.46,0-2.65,1.19-2.65,2.66"/> <path class="ldr-1" d="M116.15,66.86c-.87,0-1.58-.71-1.58-1.58h-1.07c0,1.47,1.19,2.66,2.65,2.66"/> <polyline class="ldr-1" points="160.27 66.86 116.15 66.86 116.15 67.4 116.15 67.94 160.27 67.94"/> <path class="ldr-1" d="M169.71,76.3c0-5.21-4.23-9.44-9.44-9.44v1.08c4.62,0,8.36,3.74,8.36,8.36"/> <path class="ldr-1" d="M168.63,76.3c0,4.63-3.74,8.37-8.36,8.37"/> <path class="ldr-1" d="M160.27,85.75c4.1,0,7.6-2.62,8.9-6.29"/> <polyline class="ldr-1" points="94.11 85.75 160.27 85.75 160.27 85.21 160.27 84.67 94.11 84.67"/> <path class="ldr-1" d="M85.21,79.46c1.3,3.67,4.8,6.29,8.9,6.29v-1.08c-4.62,0-8.36-3.74-8.36-8.37"/> <path class="ldr-1" d="M85.75,10.15c0-4.62,3.74-8.37,8.36-8.37"/> <path class="ldr-1" d="M94.11.71c-4.1,0-7.6,2.62-8.9,6.28"/> <polyline class="ldr-1" points="160.27 .71 94.11 .71 94.11 1.25 94.11 1.78 160.27 1.78"/> <path class="ldr-1" d="M169.17,6.99c-1.3-3.66-4.8-6.28-8.9-6.28v1.07c4.62,0,8.36,3.75,8.36,8.37"/> <line class="ldr-1" x1="168.63" y1="43.23" x2="168.63" y2="54.25"/> <line class="ldr-1" x1="169.71" y1="54.25" x2="169.71" y2="43.23"/> <path class="ldr-1" d="M160.27,62.62v1.08c5.21,0,9.44-4.23,9.44-9.45h-1.08c0,4.62-3.74,8.37-8.36,8.37Z"/> <polyline class="ldr-1" points="168.63 10.15 168.63 43.23 169.17 43.23 169.71 43.23 169.71 10.15"/> <line class="ldr-1" x1="237.66" y1="81.48" x2="229.58" y2="70.45"/> <line class="ldr-1" x1="237.23" y1="81.82" x2="237.67" y2="81.5"/> <line class="ldr-1" x1="228.73" y1="71.1" x2="236.8" y2="82.13"/> <line class="ldr-1" x1="229.15" y1="70.76" x2="228.71" y2="71.08"/> <path class="ldr-1" d="M229.57,70.43c-1.73-2.18-4.4-3.57-7.39-3.57"/> <path class="ldr-1" d="M222.18,67.94c2.64,0,4.99,1.22,6.53,3.14l.02.02.42-.34"/> <polyline class="ldr-1" points="200.13 67.94 222.18 67.94 222.18 67.4 222.18 66.86 200.13 66.86"/> <path class="ldr-1" d="M193.57,71.11c1.53-1.93,3.89-3.17,6.56-3.17v-1.08c-3.01,0-5.69,1.41-7.42,3.6"/> <line class="ldr-1" x1="193.13" y1="70.79" x2="193.56" y2="71.12"/> <line class="ldr-1" x1="184.64" y1="81.5" x2="185.07" y2="81.82"/> <line class="ldr-1" x1="192.7" y1="70.47" x2="184.65" y2="81.48"/> <polyline class="ldr-1" points="185.51 82.13 193.56 71.12 193.57 71.11 193.13 70.79"/> <path class="ldr-1" d="M185.07,81.82l-.42-.34s-.01.01-.01.02c-1.55,1.93-3.91,3.17-6.56,3.17"/> <path class="ldr-1" d="M178.08,85.75c3,0,5.68-1.41,7.41-3.6"/> <path class="ldr-1" d="M169.71,76.3h-1.08c0,1.11.19,2.17.54,3.16,1.3,3.67,4.8,6.29,8.91,6.29v-1.08c-4.63,0-8.37-3.74-8.37-8.37Z"/> <path class="ldr-1" d="M178.08.71c-4.11,0-7.61,2.62-8.91,6.28-.35.99-.54,2.05-.54,3.16h1.08c0-4.62,3.74-8.37,8.37-8.37"/> <polyline class="ldr-1" points="244.23 .71 178.08 .71 178.08 1.25 178.08 1.78 244.23 1.78"/> <path class="ldr-1" d="M253.67,10.15c0-5.22-4.23-9.44-9.44-9.44v1.07c4.62,0,8.37,3.75,8.37,8.37"/> <polyline class="ldr-1" points="253.67 72.5 253.67 10.15 253.13 10.15 252.6 10.15 252.6 76.3"/> <path class="ldr-1" d="M252.61,76.3h-.01c0,4.63-3.75,8.37-8.37,8.37"/> <path class="ldr-1" d="M244.23,85.75c4.05,0,7.5-2.55,8.84-6.14"/> <path class="ldr-1" d="M236.81,82.15c1.73,2.19,4.41,3.6,7.42,3.6v-1.08c-2.66,0-5.02-1.24-6.56-3.17t-.01-.02l-.43.34"/> <polygon class="ldr-1" points="229.15 70.76 229.58 70.45 229.58 70.44 229.57 70.43 229.15 70.76"/> <polygon class="ldr-1" points="193.13 70.79 192.71 70.46 192.7 70.47 193.13 70.79"/> <polygon class="ldr-1" points="185.07 81.82 185.49 82.15 185.5 82.14 185.51 82.13 185.07 81.82"/> <polygon class="ldr-1" points="237.23 81.82 236.8 82.13 236.8 82.14 236.81 82.15 237.23 81.82"/> <line class="ldr-1" x1="69.73" y1="81.48" x2="61.66" y2="70.45"/> <line class="ldr-1" x1="69.31" y1="81.82" x2="69.74" y2="81.5"/> <line class="ldr-1" x1="60.8" y1="71.1" x2="68.87" y2="82.13"/> <line class="ldr-1" x1="61.22" y1="70.76" x2="60.79" y2="71.08"/> <path class="ldr-1" d="M61.64,70.43c-1.73-2.18-4.39-3.57-7.39-3.57"/> <path class="ldr-1" d="M54.25,67.94c2.64,0,5,1.22,6.54,3.14t.01.02l.42-.34"/> <polyline class="ldr-1" points="32.2 67.94 54.25 67.94 54.25 67.4 54.25 66.86 32.2 66.86"/> <path class="ldr-1" d="M25.64,71.11c1.54-1.93,3.9-3.17,6.56-3.17v-1.08c-3.01,0-5.68,1.41-7.41,3.6"/> <line class="ldr-1" x1="25.21" y1="70.79" x2="25.63" y2="71.12"/> <line class="ldr-1" x1="16.71" y1="81.5" x2="17.15" y2="81.82"/> <line class="ldr-1" x1="24.77" y1="70.47" x2="16.72" y2="81.48"/> <polyline class="ldr-1" points="17.58 82.13 25.63 71.12 25.64 71.11 25.21 70.79"/> <path class="ldr-1" d="M17.15,81.82l-.43-.34s0,.01,0,.02c-1.54,1.93-3.91,3.17-6.56,3.17"/> <path class="ldr-1" d="M10.15,85.75c3.01,0,5.69-1.41,7.42-3.6"/> <path class="ldr-1" d="M.71,76.3c0,5.22,4.22,9.45,9.44,9.45v-1.08c-4.62,0-8.37-3.74-8.37-8.37"/> <polyline class="ldr-1" points=".71 10.15 .71 76.3 1.24 76.3 1.78 76.3 1.78 10.15"/> <path class="ldr-1" d="M10.15.71C4.93.71.71,4.93.71,10.15h1.07C1.78,5.53,5.53,1.78,10.15,1.78"/> <polyline class="ldr-1" points="76.3 .71 10.15 .71 10.15 1.25 10.15 1.78 76.3 1.78"/> <path class="ldr-1" d="M85.75,10.15c0-1.11-.19-2.17-.54-3.16-1.3-3.66-4.8-6.28-8.91-6.28v1.07c4.62,0,8.37,3.75,8.37,8.37"/> <polyline class="ldr-1" points="85.75 76.3 85.75 10.15 85.21 10.15 84.67 10.15 84.67 76.3"/> <path class="ldr-1" d="M76.3,85.75c4.11,0,7.61-2.62,8.91-6.29.35-.99.54-2.05.54-3.16h-1.08c0,4.63-3.75,8.37-8.37,8.37"/> <path class="ldr-1" d="M68.89,82.15c1.72,2.19,4.4,3.6,7.41,3.6v-1.08c-2.65,0-5.02-1.24-6.56-3.17t-.01-.02l-.42.34"/> <polygon class="ldr-1" points="61.22 70.76 61.66 70.45 61.65 70.44 61.64 70.43 61.22 70.76"/> <polygon class="ldr-1" points="25.21 70.79 24.79 70.46 24.78 70.46 24.77 70.47 25.21 70.79"/> <polygon class="ldr-1" points="17.15 81.82 17.57 82.15 17.57 82.14 17.58 82.13 17.15 81.82"/> <polygon class="ldr-1" points="69.31 81.82 68.87 82.13 68.88 82.14 68.89 82.15 69.31 81.82"/> <path class="ldr-1" d="M270.87,76.74c0-4.99-4.1-9.02-9.14-9.02"/> <path class="ldr-1" d="M261.73,68.8c4.46,0,8.06,3.56,8.06,7.94"/> <path class="ldr-1" d="M253.67,76.74c0-4.38,3.6-7.94,8.06-7.94v-1.08c-3.49,0-6.52,1.93-8.06,4.78-.62,1.14-.99,2.43-1.06,3.8-.01.14-.01.29-.01.44"/> <path class="ldr-1" d="M261.73,84.67c-4.46,0-8.06-3.56-8.06-7.93h-1.07c0,1,.17,1.97.47,2.87,1.22,3.57,4.64,6.14,8.66,6.14"/> <path class="ldr-1" d="M270.87,76.74h-1.08c0,4.37-3.6,7.93-8.06,7.93v1.08c5.04,0,9.14-4.03,9.14-9.01Z"/> </g> </g> </g> </svg></div>
+    <div style="color:#fff;font-size:12px;letter-spacing:1px;margin-top:16px;">Cargándomem...</div>
+  </div>
+  <!-- Error bar -->
+  <div id="error-bar" style="display:none;position:fixed;top:0;left:0;right:0;background:#b52626;color:#fff;padding:12px 16px;font-size:12px;z-index:200;text-align:center;"></div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes logoSpin{
+    0%   { transform: rotate(0deg) scale(1); opacity:1; }
+    25%  { transform: rotate(90deg) scale(0.9); opacity:0.7; }
+    50%  { transform: rotate(180deg) scale(1); opacity:1; }
+    75%  { transform: rotate(270deg) scale(0.9); opacity:0.7; }
+    100% { transform: rotate(360deg) scale(1); opacity:1; }
+  }</style>
+
+</div><!-- /app -->
+
+<script>
+/* ══ CONFIG ════════════════════════════════════════════════════ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwinO6NyKYN-_G58JoQaLGak1XifH4pVDURYgG-WMSnJyPI0mToT3eFK2tfnE2UwhF_/exec';
+
+/* ══ STATE ═════════════════════════════════════════════════════ */
+let DATA = { pedidos: [], stock: [], ot: {}, pagos: [], cajaChica: [], fecha_pagos: '', bitacora: [], woodar: { otoc: [], stock: [] } };
+
+/* ══ LOADING UI ════════════════════════════════════════════════ */
+function showLoading() {
+  document.getElementById('loading-overlay').style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+function showError(msg) {
+  const el = document.getElementById('error-bar');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+/* ══ FETCH DATA ════════════════════════════════════════════════ */
+async function fetchData() {
+  showLoading();
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'GET',
+      redirect: 'follow',
+      mode: 'cors',
+    });
+
+    const text = await res.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch(e) {
+      throw new Error('Respuesta inválida: ' + text.slice(0, 100));
+    }
+
+    // Transformar pedidos del sheet al formato que usa el dashboard
+    DATA.pedidos   = transformPedidos(json.pedidos  || []);
+    DATA.stock     = transformStock(json.stock      || []);
+    DATA.pagos     = transformPagos(json.pagos      || []);
+    DATA.ot        = transformOT(json.ot            || {});
+    DATA.cajaChica = json.cajaChica || [];
+    DATA.bitacora  = json.bitacora  || [];
+    DATA.woodar    = json.woodar    || { otoc: [], stock: [] };
+    DATA.fecha_pagos = json.fecha_pagos || '';
+
+    renderAll();
+  } catch(e) {
+    showError('Error al cargar datos. Verificá la conexión.');
+    console.error(e);
+  } finally {
+    hideLoading();
+  }
+}
+
+/* ══ TRANSFORMACIONES ══════════════════════════════════════════ */
+// El Apps Script devuelve rows como objetos con los headers del sheet como claves.
+// Estas funciones mapean esas claves a los nombres que usa el dashboard.
+
+function safeVal(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'boolean') return v;
+  if (v instanceof Date) return v.toISOString().split('T')[0];
+  const s = String(v).trim();
+  return (s === '' || s === 'NaN' || s === 'undefined') ? null : s;
+}
+
+// Convierte cualquier formato de fecha que venga del sheet a YYYY-MM-DD
+function safeDate(v) {
+  if (!v) return null;
+  const s = String(v).trim();
+  if (!s || s === 'NaN' || s === 'undefined') return null;
+
+  // Ya viene en YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // Viene como "2026-05-14T03:00:00.000Z" o similar ISO
+  if (s.includes('T')) {
+    const part = s.split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(part)) return part;
+  }
+
+  // Viene como timestamp numérico (Excel serial date via JSON)
+  if (/^\d+$/.test(s)) {
+    // Excel serial: días desde 1900-01-01
+    const d = new Date((parseInt(s) - 25569) * 86400 * 1000);
+    if (!isNaN(d)) return d.toISOString().split('T')[0];
+  }
+
+  // Intentar parsear como Date genérico
+  const d = new Date(s);
+  if (!isNaN(d)) return d.toISOString().split('T')[0];
+
+  return null;
+}
+
+function transformPedidos(rows) {
+  return rows
+    .filter(r => safeVal(r['Nº']) && safeVal(r['Nombre Cliente']))
+    .map(r => ({
+      nro:            parseInt(safeVal(r['Nº'])) || safeVal(r['Nº']),
+      fecha_orden:    safeDate(r['Fecha Orden']),
+      cliente:        safeVal(r['Nombre Cliente']),
+      entrega_max:    safeDate(r['Entrega MAX']),
+      producto:       safeVal(r['PRODUCTO']),
+      material:       safeVal(r['Material']),
+      terminacion:    safeVal(r['Terminación']),
+      tipo_envio:     safeVal(r['TIPO ENVIO']),
+      proveedor_carp: safeVal(r['Proveedor']),
+      obs_carp:       safeVal(r['Obs Carpinteria (Form)']),
+      carp_ok:        String(r['Estado'] || '').trim().toLowerCase() === 'fin',
+      proveedor_laq:  safeVal(r['Proveedor_1']) || safeVal(r['Proveedor.1']),
+      laq_detalle:    safeVal(r['Detalle']),
+      laq_obs:        safeVal(r['Observaciones de Laq']),
+      laq_ok:         String(r['Laqueado OK'] || '').trim().toLowerCase() === 'fin',
+      proveedor_tela: safeVal(r['Proveedor tela']),
+      tipo_tela:      safeVal(r['Tipo tela']),
+      color_tela:     safeVal(r['Color tela']),
+      obs_tela:       safeVal(r['Obs. Telas']),
+      tela_ok:        r['Telas OK'] === true || String(r['Telas OK'] || '').toLowerCase() === 'true',
+      cost_terminacion: safeVal(r['Terminación_1']) || safeVal(r['Terminación.1']),
+      obs_costura:    safeVal(r['Obs Costura']),
+      costura_ok:     String(r['Costura OK'] || '').trim().toLowerCase() === 'fin',
+      listo:          !!r['Listo'],
+      entregado:      !!r['Entregado'],
+    }));
+}
+
+function transformStock(rows) {
+  // El Apps Script ya devuelve los items con categoria asignada
+  // Cada item tiene: { categoria, base, producto, cantidad, ubicacion, observaciones }
+  return rows;
+}
+
+function transformOT(ot) {
+  return ot;
+}
+
+function transformPagos(rows) {
+  // El Apps Script devuelve solo el período más reciente
+  return rows;
+}
+
+function transformBitacora(rows) {
+  // Devuelve hilos por proveedor con sus comentarios
+  // Formato esperado: [{ proveedor, comentarios: [{ semana, autor, texto, fecha }] }]
+  return rows;
+}
+
+/* ══ HELPERS ══════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const fmtDate = d => {
+  if (!d) return '—';
+  // Limpiar por si llega con hora: "2026-05-14T03:00:00.000Z"
+  const clean = String(d).split('T')[0];
+  const parts = clean.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+  return clean;
+};
+const fmtMoney = n => '$' + Number(n).toLocaleString('es-AR');
+const badge = (txt, cls) => `<span class="badge badge-${cls}">${txt}</span>`;
+
+/* ══ RENDER ALL ════════════════════════════════════════════════ */
+function renderAll() {
+  renderSeguimiento();
+  renderOT();
+  renderStock();
+  renderPP();
+  renderBitacora();
+}
+
+/* ══ NAV ══════════════════════════════════════════════════════ */
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('page-' + btn.dataset.page).classList.add('active');
+    // scroll to top
+    document.querySelector('.scroll-area').scrollTop = 0;
+  });
+});
+
+/* ══ SEGUIMIENTO ══════════════════════════════════════════════ */
+let segFilter = 'all', segSearch = '', segShown = 15;
+
+function segData() {
+  return DATA.pedidos.filter(p => {
+    if (p.entregado) return false;
+    const mf = segFilter === 'activos'      ? !p.listo
+             : segFilter === 'paraentregar' ?  p.listo
+             : true; // 'all' = todos los no entregados
+    const q  = segSearch.toLowerCase();
+    const ms = !q
+      || (p.cliente||'').toLowerCase().includes(q)
+      || (p.producto||'').toLowerCase().includes(q)
+      || (p.proveedor_carp||'').toLowerCase().includes(q)
+      || (p.proveedor_tela||'').toLowerCase().includes(q);
+    return mf && ms;
+  });
+}
+
+function renderSeguimiento() {
+  const act        = DATA.pedidos.filter(p => !p.entregado && !p.listo);
+  const paraEntregar = DATA.pedidos.filter(p => p.listo && !p.entregado);
+  $('seg-stats').innerHTML = `
+    <div class="stat-top-row">
+      <div class="stat stat-half orange">
+        <div class="num">${act.length}</div>
+        <div class="lbl">En producción</div>
+      </div>
+      <div class="stat stat-half green">
+        <div class="num">${paraEntregar.length}</div>
+        <div class="lbl">Para entregar</div>
+      </div>
+    </div>
+  `;
+  renderSegList();
+}
+
+function renderSegList() {
+  const filtered = segData();
+  const slice    = filtered.slice(0, segShown);
+  const list     = $('seg-list');
+  const more     = $('seg-more');
+
+  list.innerHTML = slice.map(p => {
+    const hasCarp = !!p.proveedor_carp;
+    const hasLaq  = !!p.proveedor_laq;
+    const hasTela = !!p.proveedor_tela;
+    const hasCost = !!p.obs_costura || !!p.cost_terminacion || hasTela;
+
+    const steps = `<div class="steps">
+      <div class="step ${hasCarp ? (p.carp_ok ? 'ok' : 'pend') : 'skip'}" title="Carpintería">C</div>
+      <div class="step ${hasLaq  ? (p.laq_ok  ? 'ok' : 'pend') : 'skip'}" title="Laqueado">L</div>
+      <div class="step ${hasTela ? (p.tela_ok    ? 'ok' : 'pend') : 'skip'}" title="Telas">T</div>
+      <div class="step ${hasCost ? (p.costura_ok ? 'ok' : 'pend') : 'skip'}" title="Costura/Funda">F</div>
+    </div>`;
+
+    const estadoBadge = p.entregado ? badge('Entregado','green')
+                      : p.listo     ? badge('Listo','blue')
+                                    : badge('En producción','orange');
+    const clsCard = p.entregado ? 'entregado' : p.listo ? 'listo' : 'en-prod';
+
+    const esSillon = (p.producto||'').toLowerCase().includes('sill') || (p.producto||'').toLowerCase().includes('funda');
+
+    return `<div class="pedido-card ${clsCard}">
+      <div class="pedido-top">
+        <div>
+          <div class="pedido-nro">#${p.nro} · ${fmtDate(p.fecha_orden)}</div>
+          <div class="pedido-cliente">${p.cliente||'—'}</div>
+        </div>
+        ${estadoBadge}
+      </div>
+      <div class="pedido-divider"></div>
+
+      <div class="pedido-producto">${p.producto||'—'}</div>
+
+      <div class="pedido-detalles">
+        ${p.material    ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.material}</span></div>` : ''}
+        ${p.terminacion ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.terminacion}</span></div>` : ''}
+        ${p.tipo_envio  ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.tipo_envio}</span></div>` : ''}
+
+        ${p.proveedor_laq && (p.laq_detalle || p.laq_obs) ? `
+        <div class="pedido-tela-bloque">
+          ${p.laq_detalle ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.laq_detalle}</span></div>` : ''}
+          ${p.laq_obs     ? `<div class="pedido-fila"><span class="pedido-fila-val" style="color:var(--ink2)">${p.laq_obs}</span></div>` : ''}
+        </div>` : ''}
+
+        ${esSillon && (p.proveedor_tela || p.tipo_tela || p.color_tela) ? `
+        <div class="pedido-tela-bloque">
+          ${p.proveedor_tela ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.proveedor_tela}</span></div>` : ''}
+          ${p.tipo_tela      ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.tipo_tela}</span></div>` : ''}
+          ${p.color_tela     ? `<div class="pedido-fila"><span class="pedido-fila-val">${p.color_tela}</span></div>` : ''}
+        </div>` : ''}
+      </div>
+
+      <div class="pedido-bottom">
+        ${steps}
+        <span class="pedido-entrega">📅 ${fmtDate(p.entrega_max)}</span>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">Sin pedidos para este filtro</div>';
+
+  more.style.display = filtered.length > segShown ? 'block' : 'none';
+  more.textContent = `Ver más (${filtered.length - segShown} restantes)`;
+}
+
+$('seg-more').addEventListener('click', () => { segShown += 15; renderSegList(); });
+$('seg-search').addEventListener('input', e => { segSearch = e.target.value; segShown = 15; renderSegList(); });
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    segFilter = btn.dataset.filter; segShown = 15;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    renderSegList();
+  });
+});
+
+/* ══ OT PROVEEDOR ═════════════════════════════════════════════ */
+const PROVS_OT = ['Woodar', 'Eduardo', 'Roberto', 'Mechi'];
+let activeOT = 'Woodar';
+
+function renderOT() {
+  const ot = DATA.ot || {};
+  $('ot-chips').innerHTML = PROVS_OT.map(k => {
+    const cnt = (ot[k]?.items || []).length;
+    return `<button class="chip ${k===activeOT?'on':''}" onclick="switchOT('${k}')">${k}${cnt?' ('+cnt+')':''}</button>`;
+  }).join('');
+  renderOTList();
+}
+
+function switchOT(k) {
+  activeOT = k;
+  document.querySelectorAll('#ot-chips .chip').forEach((c,i) =>
+    c.classList.toggle('on', PROVS_OT[i] === k));
+  renderOTList();
+}
+
+function renderOTList() {
+  const ot    = DATA.ot || {};
+  const seccion = ot[activeOT] || { fecha: '', items: [] };
+  const items = seccion.items || [];
+
+  if (!items.length) {
+    $('ot-list').innerHTML = `<div class="ot-card">
+      <div class="ot-card-header"><span class="name">${activeOT}</span></div>
+      <div class="empty">Sin pedidos en esta OT</div>
+    </div>`;
+    return;
+  }
+
+  const filas = items.map(p => {
+    let extra = '';
+    if (activeOT === 'Roberto') {
+      extra = [p.terminacion, p.tipo_laq, p.obs].filter(Boolean).map(v => `<div class="ot-extra">${v}</div>`).join('');
+    } else if (activeOT === 'Mechi') {
+      extra = [p.catalogo, p.tipo_tela, p.color_tela, p.terminacion, p.obs].filter(Boolean).map(v => `<div class="ot-extra">${v}</div>`).join('');
+    } else {
+      extra = [p.madera, p.obs, p.tipo].filter(Boolean).map(v => `<div class="ot-extra">${v}</div>`).join('');
+    }
+    return `<div class="ot-item">
+      <div class="ot-nro">${p.nro}</div>
+      <div class="ot-info">
+        <div class="ot-cli">${p.cli||'—'}</div>
+        <div class="ot-prod">${p.producto||''}</div>
+        ${extra}
+      </div>
+    </div>`;
+  }).join('');
+
+  $('ot-list').innerHTML = `<div class="ot-card">
+    <div class="ot-card-header">
+      <span class="name">${activeOT}</span>
+      <span class="count">${items.length} PEDIDO${items.length>1?'S':''} · OT ${seccion.fecha}</span>
+    </div>
+    ${filas}
+  </div>${activeOT === 'Woodar' ? renderWoodarBlock() : ''}`;
+}
+
+/* ══ WOODAR BLOCK ═════════════════════════════════════════════ */
+function renderWoodarBlock() {
+  const w     = DATA.woodar || { otoc: [], stock: [] };
+  const stock = w.stock || [];
+  const otoc  = w.otoc  || [];
+
+  // ── Stock de placas ──
+  const stockHtml = stock.length ? `
+    <div class="w-section-title">Stock de placas</div>
+    <div class="w-stock-grid">
+      ${stock.map(s => {
+        const cls = s.cantidad <= 0 ? 'zero' : s.cantidad <= 1 ? 'low' : 'full';
+        return `<div class="w-stock-card ${cls}">
+          <div class="w-stock-qty">${s.cantidad}</div>
+          <div class="w-stock-tipo">${s.tipo}</div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  // ── OT/OC en tabla ──
+  const otocHtml = otoc.length ? `
+    <div class="w-section-title" style="margin-top:18px">OT / OC</div>
+    <div class="w-table-wrap">
+      <table class="w-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Cant.</th>
+            <th>Placas</th>
+            <th>Obs.</th>
+            <th>Entrega</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${otoc.map(o => {
+            const precio = o.precio_trans ? fmtMoney(o.precio_trans)
+                         : o.precio_eft  ? fmtMoney(o.precio_eft)
+                         : '—';
+            const consumo = o.consumo !== null ? `${o.consumo > 0 ? '+' : ''}${o.consumo}` : '—';
+            return `<tr>
+              <td>${o.fecha || '—'}</td>
+              <td>${o.producto || '—'}</td>
+              <td>${o.tipo || '—'}</td>
+              <td>${o.cantidad !== null ? o.cantidad : '—'}</td>
+              <td style="color:${o.consumo < 0 ? 'var(--red)' : 'var(--green)'};font-weight:600">${consumo}</td>
+              <td>${o.obs || o.embalaje || '—'}</td>
+              <td>${o.entrega || '—'}</td>
+              <td style="font-weight:600">${precio}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>` : '';
+
+  return `<div class="ot-card w-card">
+    <div class="ot-card-header">
+      <span class="name">Woodar · Detalle</span>
+    </div>
+    <div style="padding:16px">
+      ${stockHtml}
+      ${otocHtml}
+      ${!stockHtml && !otocHtml ? '<div class="empty">Sin datos disponibles</div>' : ''}
+    </div>
+  </div>`;
+}
+
+/* ══ STOCK ════════════════════════════════════════════════════ */
+function renderStock() {
+  const items = DATA.stock || [];
+
+  // Agrupar por categoría preservando el orden del sheet
+  const grupos = {};
+  items.forEach(s => {
+    const cat = s.categoria || 'OTROS';
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push(s);
+  });
+
+  const total  = items.reduce((a,b)=>a+(b.cantidad||0),0);
+  const cStock = items.filter(s=>s.cantidad>0).length;
+  const sStock = items.filter(s=>s.cantidad===0).length;
+
+  $('stock-stats').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Productos</div></div>
+    <div class="stat green"><div class="num">${cStock}</div><div class="lbl">Disponibles</div></div>
+    <div class="stat red"><div class="num">${sStock}</div><div class="lbl">Sin stock</div></div>
+  `;
+
+  let html = '';
+  Object.entries(grupos).forEach(([cat, gItems]) => {
+    const tot = gItems.reduce((a,b)=>a+(b.cantidad||0),0);
+    html += `
+      <div class="stock-grupo-header">
+        <span class="stock-grupo-nombre">${cat}</span>
+        <span class="stock-grupo-total">${tot} u.</span>
+      </div>
+      <div class="stock-grupo-wrap">
+        ${gItems.map(s => {
+          const cls = s.cantidad===0 ? 'zero' : s.cantidad<=1 ? 'low' : 'full';
+          return `<div class="stock-item ${cls}">
+            <div class="stock-qty">${s.cantidad}</div>
+            <div class="stock-info">
+              <div class="stock-prod">${s.producto}</div>
+              <div class="stock-meta">
+                ${s.base ? badge(s.base,'gray') : ''}
+                ${s.ubicacion ? `<span>${s.ubicacion}</span>` : ''}
+              </div>
+              ${s.observaciones ? `<div class="stock-obs">${s.observaciones}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  });
+
+  $('stock-list').innerHTML = html;
+}
+
+/* ══ PAGOS ════════════════════════════════════════════════════ */
+function renderPP() {
+  const total   = DATA.pagos.reduce((a,b)=>a+b.monto,0);
+  const pagado  = DATA.pagos.filter(p=>p.estado==='Pagado').reduce((a,b)=>a+b.monto,0);
+  const pend    = DATA.pagos.filter(p=>p.estado!=='Pagado'&&p.estado!=='Cancelado').reduce((a,b)=>a+b.monto,0);
+
+  $('pp-stats').innerHTML = `
+    <div class="stat"><div class="num sm">${fmtMoney(total)}</div><div class="lbl">Total período</div></div>
+    <div class="stat green"><div class="num sm">${fmtMoney(pagado)}</div><div class="lbl">Pagado</div></div>
+    <div class="stat orange"><div class="num sm">${fmtMoney(pend)}</div><div class="lbl">Pendiente</div></div>
+    <div class="stat"><div class="num">${DATA.pagos.length}</div><div class="lbl">Proveedores</div></div>
+  `;
+
+  $('pagos-list').innerHTML = DATA.pagos.map(p => {
+    const estadoColors = {
+      'Confirmado': { bg: '#d4ead9', color: '#2a6235' },
+      'Pagado':     { bg: '#e8ddd0', color: '#5c3d1e' },
+      'En proceso': { bg: '#fef9c3', color: '#854d0e' },
+      'Cancelado':  { bg: '#e2e2e2', color: '#444444' },
+      'Pendiente':  { bg: '#f0f0f0', color: '#888888' },
+      'Aproximado': { bg: '#dff6fc', color: '#0e7490' },
+    };
+    const ec = estadoColors[p.estado] || { bg: '#f0f0f0', color: '#888888' };
+    const estadoBadge = `<span class="badge" style="background:${ec.bg};color:${ec.color}">${p.estado}</span>`;
+    return `<div class="pago-card">
+      <div class="pago-top">
+        <div>
+          <div class="pago-prov">${p.proveedor}</div>
+          <div class="pago-banco">${p.banco}</div>
+          ${p.cbu   && p.cbu   !== 'undefined' ? `<div class="pago-dato"><span class="pago-dato-lbl">CBU</span> ${p.cbu}</div>`   : ''}
+          ${p.alias && p.alias !== 'undefined' ? `<div class="pago-dato"><span class="pago-dato-lbl">Alias</span> ${p.alias}</div>` : ''}
+          ${p.cuit  && p.cuit  !== 'undefined' ? `<div class="pago-dato"><span class="pago-dato-lbl">CUIT</span> ${p.cuit}</div>`  : ''}
+          ${p.factura === 'Si' ? `<div class="pago-dato"><span class="pago-dato-lbl">Factura</span> ${p.tipo_factura}</div>` : ''}
+        </div>
+        <div class="pago-monto">${fmtMoney(p.monto)}</div>
+      </div>
+      <div class="pago-concepto">${p.concepto}</div>
+      <div class="pago-bottom">
+        <span class="pago-fecha">Límite: ${p.fecha_limite}</span>
+        ${estadoBadge}
+      </div>
+    </div>`;
+  }).join('') + `<div class="pagos-total-card">
+    <span class="lbl">Total período</span>
+    <span class="num">${fmtMoney(total)}</span>
+  </div>`;
+
+  // Caja Chica al final
+  renderCajaChica();
+}
+
+/* ══ CAJA CHICA ═══════════════════════════════════════════════ */
+function renderCajaChica() {
+  const items = DATA.cajaChica || [];
+
+  // Calcular total (suma de montos, negativos restan)
+  const total = items.reduce((a,b) => a + b.monto, 0);
+
+  const filas = items.map(item => {
+    const esNeg = item.monto < 0;
+    return `<div class="caja-row">
+      <span class="caja-concepto">${item.concepto}</span>
+      <span class="caja-monto" style="color:${esNeg ? 'var(--red)' : 'var(--ink)'}">${fmtMoney(item.monto)}</span>
+    </div>`;
+  }).join('');
+
+  const html = `
+    <div class="caja-card">
+      <div class="caja-header">Caja Chica</div>
+      ${filas || '<div style="padding:14px 16px;font-size:12px;color:var(--ink2)">Sin movimientos</div>'}
+      <div class="caja-total">
+        <span>Total</span>
+        <span style="color:${total < 0 ? 'var(--red)' : 'var(--green)'}">${fmtMoney(total)}</span>
+      </div>
+    </div>`;
+
+  // Insertar o actualizar el bloque en la página de pagos
+  let el = $('caja-chica-block');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'caja-chica-block';
+    $('pagos-list').insertAdjacentElement('afterend', el);
+  }
+  el.innerHTML = html;
+}
+
+/* ══ BITÁCORA ═════════════════════════════════════════════════ */
+
+const USUARIOS = {
+  Guillo: { color: '#1a5c9e', bg: '#dbeeff' },
+  Manu:   { color: '#2a6235', bg: '#d4ead9' },
+  Santi:  { color: '#7a3090', bg: '#eedff7' },
+};
+
+const BIT_HEADER_COLORS = {
+  'WOODAR':  '#1c1a17', 'EDUARDO': '#1c1a17',
+  'ROBERTO': '#1c1a17', 'ROBER':   '#1c1a17', 'MECHI': '#1c1a17',
+  'LUIS':    '#1c1a17', 'HECTOR':  '#1c1a17', 'OTRO':  '#1c1a17',
+};
+const BIT_HEADER_TEXT = {
+  'WOODAR':  '#fff', 'EDUARDO': '#fff',
+  'ROBERTO': '#fff', 'ROBER':   '#fff', 'MECHI': '#fff',
+  'LUIS':    '#fff', 'HECTOR':  '#fff', 'OTRO':  '#fff',
+};
+const BIT_OPCIONES = ['WOODAR','EDUARDO','ROBERTO','MECHI','LUIS','HECTOR','OTRO'];
+
+// Capitaliza solo la primera letra, y normaliza "Rober" → "Roberto"
+const NOMBRES_DISPLAY = { 'ROBER': 'Roberto' };
+const capitalize = s => NOMBRES_DISPLAY[s.toUpperCase()] || (s.charAt(0).toUpperCase() + s.slice(1).toLowerCase());
+
+// Convierte cualquier formato de fecha a dd/mm/yyyy legible
+function parseBitFecha(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  // Ya está en dd/mm/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  // ISO con hora: "2026-06-01T..."  o "Mon Jun 01 2026..."
+  const d = new Date(s);
+  if (!isNaN(d)) {
+    return [String(d.getDate()).padStart(2,'0'),
+            String(d.getMonth()+1).padStart(2,'0'),
+            d.getFullYear()].join('/');
+  }
+  return s;
+}
+
+async function renderBitacora() {
+  const filas = DATA.bitacora || [];
+
+  // Agrupar por proveedor
+  const porProveedor = {};
+  filas.forEach(f => {
+    const prov = (f.Proveedor || f.proveedor || '').trim().toUpperCase();
+    if (!prov) return;
+    if (!porProveedor[prov]) porProveedor[prov] = [];
+    porProveedor[prov].push({
+      semana: parseBitFecha(f.Semana || f.semana || ''),
+      autor:  f.Autor  || f.autor  || '',
+      texto:  f.Texto  || f.texto  || '',
+    });
+  });
+
+  const selAutor = usr => BIT_OPCIONES.map
+    ? ['Guillo','Manu','Santi'].map(u =>
+        `<option value="${u}">${u}</option>`).join('')
+    : '';
+
+  // Tarjetas de proveedores con comentarios + reply form propio
+  const cardsHtml = Object.entries(porProveedor)
+    .filter(([, c]) => c.length > 0)
+    .map(([prov, comentarios]) => {
+      const hColor = BIT_HEADER_COLORS[prov.toUpperCase()] || '#1c1a17';
+      const tColor = BIT_HEADER_TEXT[prov.toUpperCase()]   || '#fff';
+
+      const hilosHtml = comentarios.map(c => {
+        const u = USUARIOS[c.autor] || { color: '#555', bg: '#f0f0f0' };
+        return `<div class="bit-comment" style="border-left-color:${u.color};background:${u.bg}40">
+          <div class="bit-comment-meta">
+            <span class="bit-comment-autor" style="color:${u.color}">${c.autor}</span>
+            <span class="bit-comment-fecha">${c.semana}</span>
+          </div>
+          <div class="bit-comment-texto">${c.texto}</div>
+        </div>`;
+      }).join('');
+
+      const id = 'bit-collapse-' + prov;
+      return `<div class="bit-card">
+        <div class="bit-header" style="background:${hColor};color:${tColor};cursor:pointer;user-select:none"
+             onclick="toggleBit('${id}')">
+          <span class="bit-name">${capitalize(prov)}</span>
+          <span id="${id}-arrow" style="font-size:12px;opacity:.7">▲</span>
+        </div>
+        <div id="${id}" class="bit-collapsible">
+          <div class="bit-comments-wrap">${hilosHtml}</div>
+          <div class="bit-reply-form">
+            <select class="bit-select" id="usr-${prov}">
+              <option value="Guillo">Guillo</option>
+              <option value="Manu">Manu</option>
+              <option value="Santi">Santi</option>
+            </select>
+            <textarea class="bit-textarea" id="reply-${prov}" placeholder="Responder…" rows="2"></textarea>
+            <div style="display:flex;justify-content:flex-start">
+              <button class="bit-send-sm" onclick="sendBitReply('${prov}')">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+  // Formulario para nuevo hilo (proveedor a elección)
+  const nuevoHtml = `<div class="bit-card">
+    <div class="bit-header" style="background:var(--ink);color:#fff">
+      <span class="bit-name">Nuevo comentario</span>
+    </div>
+    <div class="bit-reply-form">
+      <select class="bit-select" id="bit-prov-nuevo">
+        ${BIT_OPCIONES.map(p => `<option value="${p}">${p}</option>`).join('')}
+      </select>
+      <select class="bit-select" id="bit-usr-nuevo">
+        <option value="Guillo">Guillo</option>
+        <option value="Manu">Manu</option>
+        <option value="Santi">Santi</option>
+      </select>
+      <textarea class="bit-textarea" id="bit-texto-nuevo" placeholder="Tu comentario…" rows="3"></textarea>
+      <div style="display:flex;justify-content:flex-start">
+        <button class="bit-send-sm" onclick="sendBitNuevo()">Enviar</button>
+      </div>
+    </div>
+  </div>`;
+
+  $('bit-list').innerHTML = (cardsHtml || '') + nuevoHtml;
+}
+
+function fmtHoy() {
+  const h = new Date();
+  return [String(h.getDate()).padStart(2,'0'),
+          String(h.getMonth()+1).padStart(2,'0'),
+          h.getFullYear()].join('/');
+}
+
+async function enviarBit(proveedor, autor, texto) {
+  if (!texto.trim()) return false;
+  const params = new URLSearchParams({
+    action: 'addComment', proveedor, autor, texto, semana: fmtHoy()
+  });
+  await fetch(`${APPS_SCRIPT_URL}?${params.toString()}`, {
+    method: 'GET', redirect: 'follow', mode: 'cors',
+  });
+  return true;
+}
+
+async function sendBitReply(prov) {
+  const textarea = $(`reply-${prov}`);
+  const autor    = $(`usr-${prov}`).value;
+  const btn      = textarea.closest('.bit-reply-form').querySelector('.bit-send-sm');
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    await enviarBit(prov, autor, textarea.value);
+    await fetchData();
+  } catch(e) { btn.textContent = 'Error'; btn.disabled = false; }
+}
+
+async function sendBitNuevo() {
+  const prov     = $('bit-prov-nuevo').value;
+  const autor    = $('bit-usr-nuevo').value;
+  const textarea = $('bit-texto-nuevo');
+  const btn      = textarea.closest('.bit-reply-form').querySelector('.bit-send-sm');
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    await enviarBit(prov, autor, textarea.value);
+    await fetchData();
+  } catch(e) { btn.textContent = 'Error'; btn.disabled = false; }
+}
+
+function toggleBit(id) {
+  const el    = $(id);
+  const arrow = $(id + '-arrow');
+  const open  = el.classList.toggle('open');
+  if (arrow) arrow.textContent = open ? '▲' : '▼';
+}
+
+/* ══ INIT ═════════════════════════════════════════════════════ */
+// Fecha dinámica en el header
+const _hoy = new Date();
+document.getElementById('topbar-date').textContent =
+  [String(_hoy.getDate()).padStart(2,'0'),
+   String(_hoy.getMonth()+1).padStart(2,'0'),
+   _hoy.getFullYear()].join('/');
+
+fetchData();
+// Auto-refresco cada 10 minutos
+setInterval(fetchData, 10 * 60 * 1000);
+</script>
+</body>
+</html>
